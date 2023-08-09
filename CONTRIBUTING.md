@@ -1,30 +1,3 @@
-```{todo} THIS IS SUPPOSED TO BE AN EXAMPLE. MODIFY IT ACCORDING TO YOUR NEEDS!
-
-   The document assumes you are using a source repository service that promotes a
-   contribution model similar to [GitHub's fork and pull request workflow].
-   While this is true for the majority of services (like GitHub, GitLab,
-   BitBucket), it might not be the case for private repositories (e.g., when
-   using Gerrit).
-
-   Also notice that the code examples might refer to GitHub URLs or the text
-   might use GitHub specific terminology (e.g., *Pull Request* instead of *Merge
-   Request*).
-
-   Please make sure to check the document having these assumptions in mind
-   and update things accordingly.
-```
-
-```{todo} Provide the correct links/replacements at the bottom of the document.
-```
-
-```{todo} You might want to have a look on [PyScaffold's contributor's guide],
-
-   especially if your project is open source. The text should be very similar to
-   this template, but there are a few extra contents that you might decide to
-   also include, like mentioning labels of your issue tracker or automated
-   releases.
-```
-
 # Contributing
 
 Welcome to `smhw-api` contributor's guide.
@@ -47,11 +20,9 @@ If you experience bugs or general issues with `smhw-api`, please have a look
 on the [issue tracker].
 If you don't see anything useful there, please feel free to fire an issue report.
 
-:::{tip}
 Please don't forget to include the closed issues in your search.
 Sometimes a solution was already reported, and the problem is considered
 **solved**.
-:::
 
 New issue reports should include information about your programming environment
 (e.g., operating system, Python version) and steps to reproduce the problem.
@@ -67,29 +38,6 @@ by adding missing information and correcting mistakes.
 `smhw-api` documentation uses [Sphinx] as its main documentation compiler.
 This means that the docs are kept in the same repository as the project code, and
 that any documentation update is done in the same way was a code contribution.
-
-```{todo} Don't forget to mention which markup language you are using.
-
-    e.g.,  [reStructuredText] or [CommonMark] with [MyST] extensions.
-```
-
-```{todo} If your project is hosted on GitHub, you can also mention the following tip:
-
-   :::{tip}
-      Please notice that the [GitHub web interface] provides a quick way of
-      propose changes in `smhw-api`'s files. While this mechanism can
-      be tricky for normal code contributions, it works perfectly fine for
-      contributing to the docs, and can be quite handy.
-
-      If you are interested in trying this method out, please navigate to
-      the `docs` folder in the source [repository], find which file you
-      would like to propose changes and click in the little pencil icon at the
-      top, to open [GitHub's code editor]. Once you finish editing the file,
-      please write a message in the form at the bottom of the page describing
-      which changes have you made and what are the motivations behind them and
-      submit your proposal.
-   :::
-```
 
 When working on documentation changes in your local machine, you can
 compile them using [tox] :
@@ -107,12 +55,7 @@ python3 -m http.server --directory 'docs/_build/html'
 
 ## Code Contributions
 
-```{todo} Please include a reference or explanation about the internals of the project.
-
-   An architecture description, design principles or at least a summary of the
-   main concepts will make it easy for potential contributors to get started
-   quickly.
-```
+The code is all formatted using black so using the same formatting would be very helpful.
 
 ### Submit an issue
 
@@ -160,19 +103,6 @@ conda activate smhw-api
 
    to be able to import the package under development in the Python REPL.
 
-   ```{todo} if you are not using pre-commit, please remove the following item:
-   ```
-
-5. Install [pre-commit]:
-
-   ```
-   pip install pre-commit
-   pre-commit install
-   ```
-
-   `smhw-api` comes with a lot of hooks configured to automatically help the
-   developer to check the code being written.
-
 ### Implement your changes
 
 1. Create a branch to hold your changes:
@@ -197,15 +127,7 @@ conda activate smhw-api
 
    to record your changes in [git].
 
-   ```{todo} if you are not using pre-commit, please remove the following item:
-   ```
-
-   Please make sure to see the validation messages from [pre-commit] and fix
-   any eventual issues.
-   This should automatically use [flake8]/[black] to check/fix the code style
-   in a way that is compatible with the project.
-
-   :::{important}
+   
    Don't forget to add unit tests and documentation in case your
    contribution adds an additional feature and is not just a bugfix.
 
@@ -241,13 +163,9 @@ conda activate smhw-api
 2. Go to the web page of your fork and click "Create pull request"
    to send your changes for review.
 
-   ```{todo} if you are using GitHub, you can uncomment the following paragraph
-
-      Find more detailed information in [creating a PR]. You might also want to open
+   Find more detailed information in [creating a PR]. You might also want to open
       the PR as a draft first and mark it as ready for review after the feedbacks
       from the continuous integration (CI) system or any required fixes.
-
-   ```
 
 ### Troubleshooting
 
@@ -306,12 +224,6 @@ package:
 
 ### Releases
 
-```{todo} This section assumes you are using PyPI to publicly release your package.
-
-   If instead you are using a different/private package index, please update
-   the instructions accordingly.
-```
-
 If you are part of the group of maintainers and have correct user permissions
 on [PyPI], the following steps can be used to release a new version for
 `smhw-api`:
@@ -335,37 +247,23 @@ on [PyPI], the following steps can be used to release a new version for
     to collectively create software are general and can be applied to all sorts
     of environments, including private companies and proprietary code bases.
 
-
 [black]: https://pypi.org/project/black/
-[commonmark]: https://commonmark.org/
 [contribution-guide.org]: http://www.contribution-guide.org/
-[creating a pr]: https://docs.github.com/en/pull-requests/collaborating-with-pull-requests/proposing-changes-to-your-work-with-pull-requests/creating-a-pull-request
 [descriptive commit message]: https://chris.beams.io/posts/git-commit
 [docstrings]: https://www.sphinx-doc.org/en/master/usage/extensions/napoleon.html
-[first-contributions tutorial]: https://github.com/firstcontributions/first-contributions
 [flake8]: https://flake8.pycqa.org/en/stable/
 [git]: https://git-scm.com
-[github web interface]: https://docs.github.com/en/github/managing-files-in-a-repository/managing-files-on-github/editing-files-in-your-repository
-[github's code editor]: https://docs.github.com/en/github/managing-files-in-a-repository/managing-files-on-github/editing-files-in-your-repository
-[github's fork and pull request workflow]: https://guides.github.com/activities/forking/
 [guide created by freecodecamp]: https://github.com/freecodecamp/how-to-contribute-to-open-source
 [miniconda]: https://docs.conda.io/en/latest/miniconda.html
-[myst]: https://myst-parser.readthedocs.io/en/latest/syntax/syntax.html
 [other kinds of contributions]: https://opensource.guide/how-to-contribute
 [pre-commit]: https://pre-commit.com/
 [pypi]: https://pypi.org/
-[pyscaffold's contributor's guide]: https://pyscaffold.org/en/stable/contributing.html
 [pytest can drop you]: https://docs.pytest.org/en/stable/usage.html#dropping-to-pdb-python-debugger-at-the-start-of-a-test
 [python software foundation's code of conduct]: https://www.python.org/psf/conduct/
-[restructuredtext]: https://www.sphinx-doc.org/en/master/usage/restructuredtext/
 [sphinx]: https://www.sphinx-doc.org/en/master/
 [tox]: https://tox.readthedocs.io/en/stable/
 [virtual environment]: https://realpython.com/python-virtual-environments-a-primer/
 [virtualenv]: https://virtualenv.pypa.io/en/stable/
 
-
-```{todo} Please review and change the following definitions:
-```
-
-[repository]: https://github.com/<USERNAME>/smhw-api
-[issue tracker]: https://github.com/<USERNAME>/smhw-api/issues
+[repository]: https://github.com/EpicGamerCodes/smhw-api
+[issue tracker]: https://github.com/EpicGamerCodes/smhw-api/issues

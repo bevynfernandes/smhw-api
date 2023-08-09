@@ -1,25 +1,13 @@
 import pytest
 
-from smhw_api.skeleton import fib, main
+import smhw_api as api
 
 __author__ = "EpicGamerCodes"
 __copyright__ = "EpicGamerCodes"
-__license__ = "MIT"
+__license__ = "GPL-3.0-or-later"
 
 
-def test_fib():
+def test_server():
     """API Tests"""
-    assert fib(1) == 1
-    assert fib(2) == 1
-    assert fib(7) == 13
-    with pytest.raises(AssertionError):
-        fib(-10)
-
-
-def test_main(capsys):
-    """CLI Tests"""
-    # capsys is a pytest fixture that allows asserts against stdout/stderr
-    # https://docs.pytest.org/en/stable/capture.html
-    main(["7"])
-    captured = capsys.readouterr()
-    assert "The 7-th Fibonacci number is 13" in captured.out
+    with pytest.raises(api.exceptions.InvalidAuth):
+        api.Server("Should fail - Test Auth", 0, 0)
