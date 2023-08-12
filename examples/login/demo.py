@@ -16,7 +16,7 @@ def main():
 
     # Attempt to login
     # If the login is invalid the `InvalidCredentials` exception is thrown.
-    auth = api.Server.get_auth(email, password, school_results.schools[0])
+    auth = api.Server.get_auth(email, password, school_results.schools[0].id)
     print(f"Logging into account with USER ID: {auth.user_id}")
 
     # Create the server instance

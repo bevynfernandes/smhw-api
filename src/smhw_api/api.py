@@ -9,15 +9,24 @@ from smhw_api import exceptions, objects
 
 
 class Server:
+    """The Server class provides methods for interacting with the SatchelOne API to retrieve information about a student's tasks, classes, school, and more."""
+
     session = httpx.Client(http2=True)
     base_headers = {
         "Accept": "application/smhw.v2021.5+json",
         "Connection": "keep-alive",
     }
-
-    client_id = "55283c8c45d97ffd88eb9f87e13f390675c75d22b4f2085f43b0d7355c1f"
-    client_secret = "c8f7d8fcd0746adc50278bc89ed6f004402acbbf4335d3cb12d6ac6497d3"
-    """The Server class provides methods for interacting with the SatchelOne API to retrieve information about a student's tasks, classes, school, and more."""
+    current_client = "web"
+    clients = {
+        "web": {
+            "client_id": "55283c8c45d97ffd88eb9f87e13f390675c75d22b4f2085f43b0d7355c1f",
+            "client_secret": "c8f7d8fcd0746adc50278bc89ed6f004402acbbf4335d3cb12d6ac6497d3",
+        },
+        "android": {
+            "client_id": "a44486a71714841f51744b66582427f2c094e48675b40530341d470c26d63bbd",
+            "client_secret": "243a91065893d1e701d7f5d4ddf6d564a0e0559dfe872e6e6dfba849440af81d",
+        },
+    }
 
     def __init__(self, auth: str, user_id: int, school_id: int):
         """
@@ -803,6 +812,14 @@ class Server:
         )
 
     @classmethod
+    def change_client(cls, client: str):
+        clients = ["web", "android"]
+        if client not in clients:
+            raise ValueError(f"{client} is a valid client! ({clients})")
+        Server.current_client = client
+        logger.info(f"Switched to using '{client}' client ids.")
+
+    @classmethod
     def get_public_schools(
         cls, filter: str = "", limit: int = 20
     ) -> objects.PublicSchoolSearch:
@@ -858,12 +875,10 @@ class Server:
             "username": username,
             "password": password,
             "school_id": school_id,
+            "verification_token": "",
         }
 
-        params = {
-            "client_id": cls.client_id,
-            "client_secret": cls.client_secret,
-        }
+        params = cls.clients[cls.current_client]
 
         response = cls.session.post(
             "https://api.satchelone.com/oauth/token",
@@ -871,6 +886,7 @@ class Server:
             data=data,
         )
         r = response.json()
+
         if response.status_code == 401:
             raise exceptions.InvalidCredentials(r, username, password, school_id)
         return objects.Create.instantiate(objects.Auth, r)
