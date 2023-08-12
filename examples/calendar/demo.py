@@ -7,7 +7,7 @@ SCHOOL_ID: int = 0
 
 
 def main():
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    server = api.Client(AUTH, USER_ID, SCHOOL_ID)
     calender = server.get_calendar()  # get the student's personal calender from today
     for (
         ctask
@@ -23,7 +23,7 @@ def public_calender():
     # The entire school's calender
     # It's the same code as above but with a different server function
 
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    server = api.Client(AUTH, USER_ID, SCHOOL_ID)
     calender = server.get_school_calendar()  # < The different server function
     for ctask in calender:
         print(

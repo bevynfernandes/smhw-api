@@ -7,7 +7,7 @@ SCHOOL_ID: int = 0
 
 
 def main():
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    server = api.Client(AUTH, USER_ID, SCHOOL_ID)
     todo = (
         server.get_todo()
     )  # get all the tasks from the todo (current date to 3 weeks ahead,)

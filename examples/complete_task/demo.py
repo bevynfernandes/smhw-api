@@ -9,7 +9,7 @@ SCHOOL_ID: int = 0
 def main():
     # Mark a task as complete
 
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    server = api.Client(AUTH, USER_ID, SCHOOL_ID)
     todo = server.get_todo()  # get all current tasks
     task = todo.tasks[0]  # Get the first task
 

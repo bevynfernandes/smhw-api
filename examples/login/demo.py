@@ -10,17 +10,17 @@ def main():
     email = input("Email: ")
     password = input("Password: ")
     school = input("School Name: ")
-    school_results = api.Server.get_public_schools(
+    school_results = api.Client.get_public_schools(
         school, limit=1
     )  # get the school with the most similar name as `school`
 
     # Attempt to login
     # If the login is invalid the `InvalidCredentials` exception is thrown.
-    auth = api.Server.get_auth(email, password, school_results.schools[0].id)
+    auth = api.Client.get_auth(email, password, school_results.schools[0].id)
     print(f"Logging into account with USER ID: {auth.user_id}")
 
     # Create the server instance
-    server = api.Server(f"Bearer {auth.access_token}", auth.user_id, auth.school_id)
+    server = api.Client(f"Bearer {auth.access_token}", auth.user_id, auth.school_id)
     # Your code
 
 

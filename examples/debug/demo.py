@@ -10,7 +10,7 @@ def main():
     # Enable debug mode on the module
     # This shows the requests sent to the API in the console
     api.set_debug(True)
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    server = api.Client(AUTH, USER_ID, SCHOOL_ID)
     # Your code here
 
 

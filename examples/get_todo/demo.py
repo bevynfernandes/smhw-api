@@ -7,7 +7,7 @@ SCHOOL_ID: int = 0
 
 
 def main():
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    server = api.Client(AUTH, USER_ID, SCHOOL_ID)
     # Get the user's current task todo list
     # If you wish to get tasks from earlier dates, use the datetime module like so:
     # todo = server.get_todo(start=datetime.datetime.now() - datetime.timedelta(weeks=4))

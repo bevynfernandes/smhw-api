@@ -8,3 +8,4 @@
 
 - Add support to changing client ids (switch between Web and Android)
 - Fix login demo
+- BREAKING CHANGE: Rename api.Server class to api.Client

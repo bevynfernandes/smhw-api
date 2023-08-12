@@ -14,7 +14,7 @@
 
 ## Introduction
 
-The `smhw-api` project allows users to connect to the Satchel: One API using their user credentials. The project is designed to run on Python 3.11. The responses are returned as objects which are fully type hinted (see `src/smhw_api/objects.py`). Please note that there is no rate limiting kept by the script yet, so make sure you send API requests appropriately. The script uses the Web client ids (to switch to the mobile app client, replace the `Server.client_id` and `Server.client_secret` variables).
+The `smhw-api` project allows users to connect to the Satchel: One API using their user credentials. The project is designed to run on Python 3.11. The responses are returned as objects which are fully type hinted (see `src/smhw_api/objects.py`). Please note that there is no rate limiting kept by the script yet, so make sure you send API requests appropriately. The script uses the Web client ids (to switch to the mobile app client, replace the `Client.client_id` and `Client.client_secret` variables).
 
 ## Features
 

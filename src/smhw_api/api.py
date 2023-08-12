@@ -8,8 +8,8 @@ from loguru import logger
 from smhw_api import exceptions, objects
 
 
-class Server:
-    """The Server class provides methods for interacting with the SatchelOne API to retrieve information about a student's tasks, classes, school, and more."""
+class Client:
+    """The Client class provides methods for interacting with the SatchelOne API to retrieve information about a student's tasks, classes, school, and more."""
 
     session = httpx.Client(http2=True)
     base_headers = {
@@ -816,7 +816,7 @@ class Server:
         clients = ["web", "android"]
         if client not in clients:
             raise ValueError(f"{client} is a valid client! ({clients})")
-        Server.current_client = client
+        Client.current_client = client
         logger.info(f"Switched to using '{client}' client ids.")
 
     @classmethod
