@@ -697,8 +697,9 @@ class Client:
         )
 
     def get_detailed_attendance(self) -> objects.DetailedAttendance:
+        params = {"include": "attendance_codes,detailed_view"}
         data: dict = self._get_request(
-            f"/attendance_students/{self.user_id}?include=attendance_codes%2Cdetailed_view"
+            f"/attendance_students/{self.user_id}", params=params
         ).json()
         last_periods = [
             objects.Create.instantiate(objects.DetailedAttendancePeriod, period)
@@ -709,6 +710,45 @@ class Client:
             data["attendance_student"]
             | {"last_periods_info": last_periods}
             | data["meta"],
+        )
+
+    def get_detentions(
+        self,
+        start: datetime.datetime = None,
+        end: datetime.datetime = None,
+        limit: int = None,
+        offset: int = 0,
+        reasons: bool = True,
+        employee: bool = True,
+        detention_template: bool = True,
+    ) -> objects.Detentions:
+        if start is None:
+            start = datetime.datetime.now() - datetime.timedelta(
+                weeks=52.1429
+            )  # minus 1 year
+        if end is None:
+            end = datetime.datetime.now() + datetime.timedelta(
+                weeks=52.1429
+            )  # plus 1 year
+
+        include = ""
+        if reasons:
+            include += "reasons,"
+        if employee:
+            include += "employee,"
+        if detention_template:
+            include += "detention_template,"
+
+        params = {
+            "start_date": start,
+            "end_date": end,
+            "limit": limit,
+            "offset": offset,
+            "include": include,
+        }
+        data: dict = self._get_request("/detentions", params=params).json()
+        return objects.Create.instantiate(
+            objects.Detentions, {"detentions": data["detentions"]} | data["meta"]
         )
 
     def complete_task(self, task_id: int, state: bool):

@@ -303,6 +303,14 @@ class DetailedAttendance:
 
 
 @dataclass(slots=True)
+class Detentions:
+    """TBD"""  # TODO
+
+    detentions: list[Any]
+    selection_count: int
+
+
+@dataclass(slots=True)
 class _SchoolPremiumFeatures:
     welfare_notes: bool
     white_label_enabled: bool
