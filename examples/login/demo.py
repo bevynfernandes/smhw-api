@@ -19,8 +19,8 @@ def main():
     auth = api.Client.get_auth(email, password, school_results.schools[0].id)
     print(f"Logging into account with USER ID: {auth.user_id}")
 
-    # Create the server instance
-    server = api.Client(f"Bearer {auth.access_token}", auth.user_id, auth.school_id)
+    # Create the client instance
+    client = api.Client(f"Bearer {auth.access_token}", auth.user_id, auth.school_id)
     # Your code
 
 

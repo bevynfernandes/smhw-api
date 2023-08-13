@@ -7,13 +7,13 @@ SCHOOL_ID: int = 0
 
 
 def main():
-    server = api.Client(AUTH, USER_ID, SCHOOL_ID)
-    school = server.get_current_school()  # get the student's school
+    client = api.Client(AUTH, USER_ID, SCHOOL_ID)
+    school = client.get_current_school()  # get the student's school
     for (
         id
     ) in school.employee_ids:  # iterate through a list of the school's employee_ids
         try:
-            employee = server.get_employee(
+            employee = client.get_employee(
                 id
             )  # get_user can also be used but it returns more data that is not needed for this function
 
