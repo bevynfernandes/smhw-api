@@ -103,7 +103,9 @@ class Client:
             A HTTP response object of the type `httpx.Response`.
         """
         logger.debug(f"[POST] request: {url=}, {kwargs}")
-        return self.session.post(url, headers=self.headers, *args, **kwargs)
+        return self.session.post(
+            f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
+        )
 
     def get_todo(
         self,
