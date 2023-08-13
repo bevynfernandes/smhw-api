@@ -27,6 +27,7 @@ class Client:
             "client_secret": "243a91065893d1e701d7f5d4ddf6d564a0e0559dfe872e6e6dfba849440af81d",
         },
     }
+    api_url = "https://api.satchelone.com/api"
 
     def __init__(self, auth: str, user_id: int, school_id: int):
         """
@@ -70,7 +71,9 @@ class Client:
             A HTTP response object of the type `httpx.Response`.
         """
         logger.debug(f"[GET] request: {url=}, {kwargs}")
-        return self.session.get(url, headers=self.headers, *args, **kwargs)
+        return self.session.get(
+            f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
+        )
 
     def _put_request(self, url, *args, **kwargs) -> httpx.Response:
         """
@@ -84,7 +87,9 @@ class Client:
             A HTTP response object of the type `httpx.Response`.
         """
         logger.debug(f"[PUT] request: {url=}, {kwargs}")
-        return self.session.put(url, headers=self.headers, *args, **kwargs)
+        return self.session.put(
+            f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
+        )
 
     def _post_request(self, url, *args, **kwargs) -> httpx.Response:
         """
@@ -141,9 +146,7 @@ class Client:
         }
         if completed is not None:
             params["completed"] = completed
-        r = self._get_request(
-            "https://api.satchelone.com/api/todos", params=params
-        ).json()
+        r = self._get_request("/todos", params=params).json()
         return objects.make_todo(r["todos"])
 
     def get_task(self, task: objects.Task, obj: list = None) -> objects.DetailedTask:
@@ -170,9 +173,7 @@ class Client:
         else:
             api_path = obj[1].lower()
 
-        r = self._get_request(
-            f"https://api.satchelone.com/api/{api_path}/{task.class_task_id}"
-        )
+        r = self._get_request(f"/{api_path}/{task.class_task_id}")
         if r.status_code == 404:
             raise exceptions.InvalidTask(
                 f"Task is not found! ({task.class_task_type=})"
@@ -242,13 +243,9 @@ class Client:
             raise exceptions.TaskAlreadyDetailed(
                 f"Task ID: {task.id} | Is already a detailed task!"
             )
-        r = self._get_request(
-            f"https://api.satchelone.com/api/quizzes/{task.class_task_id}"
-        ).json()["quiz"]
+        r = self._get_request(f"/quizzes/{task.class_task_id}").json()["quiz"]
         params = {"ids[]": r["question_ids"]}
-        nr = self._get_request(
-            "https://api.satchelone.com/api/quiz_questions", params=params
-        ).json()
+        nr = self._get_request("/quiz_questions", params=params).json()
 
         nqq = [
             objects.Create.instantiate(objects.Question, question)
@@ -270,7 +267,7 @@ class Client:
         Returns:
             an instance of the `objects.User` class.
         """
-        r = self._get_request(f"https://api.satchelone.com/api/users/{user_id}")
+        r = self._get_request(f"/users/{user_id}")
         if r.status_code == 404:
             raise exceptions.InvalidUser(user_id)
         return objects.Create.instantiate(objects.User, r["user"])
@@ -320,9 +317,7 @@ class Client:
             include += "premium_features,"
 
         params = {"include": include}
-        response = self._get_request(
-            f"https://api.satchelone.com/api/students/{self.user_id}", params=params
-        )
+        response = self._get_request(f"/students/{self.user_id}", params=params)
         response = response.json()
 
         params = {
@@ -331,9 +326,9 @@ class Client:
 
         classes = [
             objects.Create.instantiate(objects.Class, c)
-            for c in self._get_request(
-                "https://api.satchelone.com/api/class_groups", params=params
-            ).json()["class_groups"]
+            for c in self._get_request("/class_groups", params=params).json()[
+                "class_groups"
+            ]
         ]
         return objects.Create.instantiate(
             objects.Student,
@@ -356,16 +351,14 @@ class Client:
             return self._data["school"]
 
         params = {"include": "school"}
-        response = self._get_request(
-            f"https://api.satchelone.com/api/students/{self.user_id}", params=params
-        )
+        response = self._get_request(f"/students/{self.user_id}", params=params)
         if response.status_code == 401:
             raise exceptions.InvalidAuth(self.auth, self.user_id, self.school_id)
         response = response.json()
         subjects = [
             objects.Create.instantiate(objects.Subject, subject)
             for subject in self._get_request(
-                "https://api.satchelone.com/api/subjects",
+                "/subjects",
                 params={"school_id": self.school_id},
             ).json()["subjects"]
         ]
@@ -384,7 +377,7 @@ class Client:
             an instance of the `Parent` class.
         """
         params = {"ids[]": self._data["student"].parent_ids}
-        r = self._get_request("https://api.satchelone.com/api/parents", params=params)
+        r = self._get_request("/parents", params=params)
         return [
             objects.Create.instantiate(objects.Parent, user)
             for user in r.json()["parents"]
@@ -407,7 +400,7 @@ class Client:
             "commentable_type": "ClassTask",
         }
 
-        r = self._get_request("https://api.satchelone.com/api/comments", params=params)
+        r = self._get_request("/comments", params=params)
         r = r.json()["comments"]
         logger.info(
             """If you are using this feature and you have data from it, please open a Github Issue with this data!
@@ -432,9 +425,7 @@ class Client:
         `exceptions.InvalidUser` exception.
         """
 
-        # if you make id = "", it returns some random teachers full (full names) data? (20 teachers? possibly admins?)
-        # params = {'ids[]': id}
-        r = self._get_request(f"https://api.satchelone.com/api/users/{id}")
+        r = self._get_request(f"/users/{id}")
         if r.status_code == 404:
             raise exceptions.InvalidUser(f"Employee not found! ({id=})")
         try:
@@ -463,9 +454,7 @@ class Client:
         if date is None:
             date = datetime.datetime.now()
         params = {"date": date.strftime("%Y-%m-%d")}
-        r = self._get_request(
-            "https://api.satchelone.com/api/personal_calendar_tasks", params=params
-        )
+        r = self._get_request("/personal_calendar_tasks", params=params)
         return [
             objects.Create.instantiate(objects.PersonalCalendarTask, data)
             for data in r.json()["personal_calendar_tasks"]
@@ -494,7 +483,7 @@ class Client:
             "date": date.strftime("%Y-%m-%d"),
             "subdomain": self._data["school"].subdomain,
         }
-        r = self._get_request("https://api.satchelone.com/api/calendars", params=params)
+        r = self._get_request("/calendars", params=params)
         return [
             objects.Create.instantiate(objects.SchoolCalendarTask, data)
             for data in r.json()["calendars"]
@@ -522,7 +511,7 @@ class Client:
         }
 
         r = self._get_request(
-            "https://api.satchelone.com/api/behaviour_breakdown_report_entries",
+            "/behaviour_breakdown_report_entries",
             params=params,
         )
         r = r.json()
@@ -532,9 +521,9 @@ class Client:
         ]
         psum = objects.Create.instantiate(
             objects.PraiseSummary,
-            self._get_request(
-                f"https://api.satchelone.com/api/student_praise_summaries/{self.user_id}"
-            ).json()["student_praise_summary"],
+            self._get_request(f"/student_praise_summaries/{self.user_id}").json()[
+                "student_praise_summary"
+            ],
         )
         return objects.Create.instantiate(
             objects.Behaviour,
@@ -559,9 +548,7 @@ class Client:
             raise exceptions.TaskNotDetailed(
                 f"Quiz ID: {quiz.id} | Is not a detailed task, you can fetch it's detailed version by using the function self.get_quiz()!"
             )
-        r = self._get_request(
-            f"https://api.satchelone.com/api/quiz_submissions/{quiz.submission_ids[0]}"
-        )
+        r = self._get_request(f"/quiz_submissions/{quiz.submission_ids[0]}")
         return objects.Create.instantiate(
             objects.QuizSubmission, r.json()["quiz_submission"]
         )  # more sections: submission_events and submission_comments
@@ -594,9 +581,7 @@ class Client:
 
         api_id = f"{quiz.id}-{question_id}"
 
-        question_data = self._get_request(
-            f"https://api.satchelone.com/api/quiz_submission_questions/{api_id}"
-        )
+        question_data = self._get_request(f"/quiz_submission_questions/{api_id}")
         question_data = question_data.json()
         # check if question already done
         attempts = 0
@@ -622,7 +607,7 @@ class Client:
         }
 
         question_data = self._put_request(
-            f"https://api.satchelone.com/api/quiz_submission_questions/{api_id}",
+            f"/quiz_submission_questions/{api_id}",
             json=question_data,
         ).json()
 
@@ -635,7 +620,7 @@ class Client:
             time.sleep(delay)
 
         question_data = self._put_request(
-            f"https://api.satchelone.com/api/quiz_submission_questions/{api_id}",
+            f"/quiz_submission_questions/{api_id}",
             json=question_data,
         ).json()
 
@@ -676,7 +661,7 @@ class Client:
             }
         }
 
-        r = self._post_request("https://api.satchelone.com/api/comments", data=data)
+        r = self._post_request("/comments", data=data)
         r = r.json()
         users = [
             objects.Create.instantiate(objects.CommentUser, user) for user in r["users"]
@@ -694,6 +679,36 @@ class Client:
         ]
         return objects.Create.instantiate(
             objects.Comments, {"users": users, "comments": comments}
+        )
+
+    def get_student_insight(self) -> objects.StudentInsight:
+        data: dict = self._get_request(f"/student_insights/{self.user_id}").json()[
+            "student_insight"
+        ]
+        attendance = objects.Create.instantiate(
+            objects.AttendanceInsight, data["attendance"]
+        )
+        punctuality = objects.Create.instantiate(
+            objects.PunctualityInsight, data["punctuality"]
+        )
+        return objects.Create.instantiate(
+            objects.StudentInsight,
+            data | {"attendance": attendance, "punctuality": punctuality},
+        )
+
+    def get_detailed_attendance(self) -> objects.DetailedAttendance:
+        data: dict = self._get_request(
+            f"/attendance_students/{self.user_id}?include=attendance_codes%2Cdetailed_view"
+        ).json()
+        last_periods = [
+            objects.Create.instantiate(objects.DetailedAttendancePeriod, period)
+            for period in data["attendance_student"]["last_periods_info"]
+        ]
+        return objects.Create.instantiate(
+            objects.DetailedAttendance,
+            data["attendance_student"]
+            | {"last_periods_info": last_periods}
+            | data["meta"],
         )
 
     def complete_task(self, task_id: int, state: bool):
@@ -714,9 +729,7 @@ class Client:
             },
         }
 
-        self._put_request(
-            f"https://api.satchelone.com/api/todos/{task_id}", json=json_data
-        )
+        self._put_request(f"/todos/{task_id}", json=json_data)
 
     def view_task(self, task_id: int, eventable_type: str) -> bool:
         """
@@ -741,13 +754,11 @@ class Client:
             },
         }
 
-        r = self._post_request("https://api.satchelone.com/api/events", json=json_data)
+        r = self._post_request("/events", json=json_data)
         return bool(r.text)
 
     def reset_calendar_token(self):
-        self._post_request(
-            "https://api.satchelone.com/api/icalendars/reset_calendar_token"
-        )
+        self._post_request("/icalendars/reset_calendar_token")
         self._get_data()  # refresh cache
 
     def get_timetable(
@@ -774,7 +785,7 @@ class Client:
         }
 
         r = self._get_request(
-            f"https://api.satchelone.com/api/timetable/school/{self.school_id}/student/{self.user_id}",
+            f"/timetable/school/{self.school_id}/student/{self.user_id}",
             params=params,
         )
         r = r.json()
@@ -839,7 +850,7 @@ class Client:
         """
         params = {"filter": filter, "limit": limit}
         r = cls.session.get(
-            "https://api.satchelone.com/api/public/school_search",
+            f"{cls.api_url}/public/school_search",
             params=params,
             headers=cls.base_headers,
         )
