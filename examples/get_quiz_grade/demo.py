@@ -7,14 +7,14 @@ SCHOOL_ID: int = 0
 
 
 def main():
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    client = api.Client(AUTH, USER_ID, SCHOOL_ID)
     todo = (
-        server.get_todo()
+        client.get_todo()
     )  # get all the tasks from the todo (current date to 3 weeks ahead,)
-    quiz = server.get_auto_detailed_task(
+    quiz = client.get_auto_detailed_task(
         todo.quiz[0]
     )  # Get the first available quiz from the todo and get its detailed information (see the get_todo demo for more information)
-    quiz_submission = server.get_quiz_submission(
+    quiz_submission = client.get_quiz_submission(
         quiz
     )  # get the student's quiz submission data, passing the quiz as a param
     print(

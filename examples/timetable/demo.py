@@ -10,9 +10,9 @@ def main():
     # Some notes:
     # The TimetableInterface object is very confusing, even for me, hopefully I will have the time to redesign it
 
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    client = api.Client(AUTH, USER_ID, SCHOOL_ID)
     timetable = (
-        server.get_timetable()
+        client.get_timetable()
     )  # Get the TimetableInterface object from the start of this week (Monday)
     print(
         timetable.weeks[0].days[0].lessons

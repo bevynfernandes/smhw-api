@@ -7,12 +7,12 @@ SCHOOL_ID: int = 0
 
 
 def main():
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    client = api.Client(AUTH, USER_ID, SCHOOL_ID)
     # Get the user's current task todo list
     # If you wish to get tasks from earlier dates, use the datetime module like so:
-    # todo = server.get_todo(start=datetime.datetime.now() - datetime.timedelta(weeks=4))
+    # todo = client.get_todo(start=datetime.datetime.now() - datetime.timedelta(weeks=4))
     # this code ^ fetches tasks starting from 4 weeks ago to 3 weeks ahead (the end parameter's default)
-    todo = server.get_todo()
+    todo = client.get_todo()
 
     # All tasks are stored in todo.tasks
     # If you wish to access specific types of tasks, the todo is categorised into 5 different lists:
@@ -23,7 +23,7 @@ def main():
     # As you might have noticed, the information is very limited. To fetch more information you must use the
     # `get_auto_detailed_task` function
     # This function automatically detects the type of task, fetches the data and returns the appropriate dataclass.
-    detailed_task: api.objects.DetailedTask = server.get_auto_detailed_task(
+    detailed_task: api.objects.DetailedTask = client.get_auto_detailed_task(
         todo.homework[0]
     )  # Get detailed information about the first homework
     print(

@@ -8,16 +8,26 @@ from loguru import logger
 from smhw_api import exceptions, objects
 
 
-class Server:
+class Client:
+    """The Client class provides methods for interacting with the SatchelOne API to retrieve information about a student's tasks, classes, school, and more."""
+
     session = httpx.Client(http2=True)
     base_headers = {
         "Accept": "application/smhw.v2021.5+json",
         "Connection": "keep-alive",
     }
-
-    client_id = "55283c8c45d97ffd88eb9f87e13f390675c75d22b4f2085f43b0d7355c1f"
-    client_secret = "c8f7d8fcd0746adc50278bc89ed6f004402acbbf4335d3cb12d6ac6497d3"
-    """The Server class provides methods for interacting with the SatchelOne API to retrieve information about a student's tasks, classes, school, and more."""
+    current_client = "web"
+    clients = {
+        "web": {
+            "client_id": "55283c8c45d97ffd88eb9f87e13f390675c75d22b4f2085f43b0d7355c1f",
+            "client_secret": "c8f7d8fcd0746adc50278bc89ed6f004402acbbf4335d3cb12d6ac6497d3",
+        },
+        "android": {
+            "client_id": "a44486a71714841f51744b66582427f2c094e48675b40530341d470c26d63bbd",
+            "client_secret": "243a91065893d1e701d7f5d4ddf6d564a0e0559dfe872e6e6dfba849440af81d",
+        },
+    }
+    api_url = "https://api.satchelone.com/api"
 
     def __init__(self, auth: str, user_id: int, school_id: int):
         """
@@ -61,7 +71,9 @@ class Server:
             A HTTP response object of the type `httpx.Response`.
         """
         logger.debug(f"[GET] request: {url=}, {kwargs}")
-        return self.session.get(url, headers=self.headers, *args, **kwargs)
+        return self.session.get(
+            f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
+        )
 
     def _put_request(self, url, *args, **kwargs) -> httpx.Response:
         """
@@ -75,7 +87,9 @@ class Server:
             A HTTP response object of the type `httpx.Response`.
         """
         logger.debug(f"[PUT] request: {url=}, {kwargs}")
-        return self.session.put(url, headers=self.headers, *args, **kwargs)
+        return self.session.put(
+            f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
+        )
 
     def _post_request(self, url, *args, **kwargs) -> httpx.Response:
         """
@@ -89,7 +103,9 @@ class Server:
             A HTTP response object of the type `httpx.Response`.
         """
         logger.debug(f"[POST] request: {url=}, {kwargs}")
-        return self.session.post(url, headers=self.headers, *args, **kwargs)
+        return self.session.post(
+            f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
+        )
 
     def get_todo(
         self,
@@ -132,9 +148,7 @@ class Server:
         }
         if completed is not None:
             params["completed"] = completed
-        r = self._get_request(
-            "https://api.satchelone.com/api/todos", params=params
-        ).json()
+        r = self._get_request("/todos", params=params).json()
         return objects.make_todo(r["todos"])
 
     def get_task(self, task: objects.Task, obj: list = None) -> objects.DetailedTask:
@@ -161,9 +175,7 @@ class Server:
         else:
             api_path = obj[1].lower()
 
-        r = self._get_request(
-            f"https://api.satchelone.com/api/{api_path}/{task.class_task_id}"
-        )
+        r = self._get_request(f"/{api_path}/{task.class_task_id}")
         if r.status_code == 404:
             raise exceptions.InvalidTask(
                 f"Task is not found! ({task.class_task_type=})"
@@ -233,13 +245,9 @@ class Server:
             raise exceptions.TaskAlreadyDetailed(
                 f"Task ID: {task.id} | Is already a detailed task!"
             )
-        r = self._get_request(
-            f"https://api.satchelone.com/api/quizzes/{task.class_task_id}"
-        ).json()["quiz"]
+        r = self._get_request(f"/quizzes/{task.class_task_id}").json()["quiz"]
         params = {"ids[]": r["question_ids"]}
-        nr = self._get_request(
-            "https://api.satchelone.com/api/quiz_questions", params=params
-        ).json()
+        nr = self._get_request("/quiz_questions", params=params).json()
 
         nqq = [
             objects.Create.instantiate(objects.Question, question)
@@ -261,7 +269,7 @@ class Server:
         Returns:
             an instance of the `objects.User` class.
         """
-        r = self._get_request(f"https://api.satchelone.com/api/users/{user_id}")
+        r = self._get_request(f"/users/{user_id}")
         if r.status_code == 404:
             raise exceptions.InvalidUser(user_id)
         return objects.Create.instantiate(objects.User, r["user"])
@@ -311,9 +319,7 @@ class Server:
             include += "premium_features,"
 
         params = {"include": include}
-        response = self._get_request(
-            f"https://api.satchelone.com/api/students/{self.user_id}", params=params
-        )
+        response = self._get_request(f"/students/{self.user_id}", params=params)
         response = response.json()
 
         params = {
@@ -322,9 +328,9 @@ class Server:
 
         classes = [
             objects.Create.instantiate(objects.Class, c)
-            for c in self._get_request(
-                "https://api.satchelone.com/api/class_groups", params=params
-            ).json()["class_groups"]
+            for c in self._get_request("/class_groups", params=params).json()[
+                "class_groups"
+            ]
         ]
         return objects.Create.instantiate(
             objects.Student,
@@ -347,16 +353,14 @@ class Server:
             return self._data["school"]
 
         params = {"include": "school"}
-        response = self._get_request(
-            f"https://api.satchelone.com/api/students/{self.user_id}", params=params
-        )
+        response = self._get_request(f"/students/{self.user_id}", params=params)
         if response.status_code == 401:
             raise exceptions.InvalidAuth(self.auth, self.user_id, self.school_id)
         response = response.json()
         subjects = [
             objects.Create.instantiate(objects.Subject, subject)
             for subject in self._get_request(
-                "https://api.satchelone.com/api/subjects",
+                "/subjects",
                 params={"school_id": self.school_id},
             ).json()["subjects"]
         ]
@@ -375,7 +379,7 @@ class Server:
             an instance of the `Parent` class.
         """
         params = {"ids[]": self._data["student"].parent_ids}
-        r = self._get_request("https://api.satchelone.com/api/parents", params=params)
+        r = self._get_request("/parents", params=params)
         return [
             objects.Create.instantiate(objects.Parent, user)
             for user in r.json()["parents"]
@@ -398,7 +402,7 @@ class Server:
             "commentable_type": "ClassTask",
         }
 
-        r = self._get_request("https://api.satchelone.com/api/comments", params=params)
+        r = self._get_request("/comments", params=params)
         r = r.json()["comments"]
         logger.info(
             """If you are using this feature and you have data from it, please open a Github Issue with this data!
@@ -423,9 +427,7 @@ class Server:
         `exceptions.InvalidUser` exception.
         """
 
-        # if you make id = "", it returns some random teachers full (full names) data? (20 teachers? possibly admins?)
-        # params = {'ids[]': id}
-        r = self._get_request(f"https://api.satchelone.com/api/users/{id}")
+        r = self._get_request(f"/users/{id}")
         if r.status_code == 404:
             raise exceptions.InvalidUser(f"Employee not found! ({id=})")
         try:
@@ -454,9 +456,7 @@ class Server:
         if date is None:
             date = datetime.datetime.now()
         params = {"date": date.strftime("%Y-%m-%d")}
-        r = self._get_request(
-            "https://api.satchelone.com/api/personal_calendar_tasks", params=params
-        )
+        r = self._get_request("/personal_calendar_tasks", params=params)
         return [
             objects.Create.instantiate(objects.PersonalCalendarTask, data)
             for data in r.json()["personal_calendar_tasks"]
@@ -485,7 +485,7 @@ class Server:
             "date": date.strftime("%Y-%m-%d"),
             "subdomain": self._data["school"].subdomain,
         }
-        r = self._get_request("https://api.satchelone.com/api/calendars", params=params)
+        r = self._get_request("/calendars", params=params)
         return [
             objects.Create.instantiate(objects.SchoolCalendarTask, data)
             for data in r.json()["calendars"]
@@ -513,7 +513,7 @@ class Server:
         }
 
         r = self._get_request(
-            "https://api.satchelone.com/api/behaviour_breakdown_report_entries",
+            "/behaviour_breakdown_report_entries",
             params=params,
         )
         r = r.json()
@@ -523,9 +523,9 @@ class Server:
         ]
         psum = objects.Create.instantiate(
             objects.PraiseSummary,
-            self._get_request(
-                f"https://api.satchelone.com/api/student_praise_summaries/{self.user_id}"
-            ).json()["student_praise_summary"],
+            self._get_request(f"/student_praise_summaries/{self.user_id}").json()[
+                "student_praise_summary"
+            ],
         )
         return objects.Create.instantiate(
             objects.Behaviour,
@@ -550,9 +550,7 @@ class Server:
             raise exceptions.TaskNotDetailed(
                 f"Quiz ID: {quiz.id} | Is not a detailed task, you can fetch it's detailed version by using the function self.get_quiz()!"
             )
-        r = self._get_request(
-            f"https://api.satchelone.com/api/quiz_submissions/{quiz.submission_ids[0]}"
-        )
+        r = self._get_request(f"/quiz_submissions/{quiz.submission_ids[0]}")
         return objects.Create.instantiate(
             objects.QuizSubmission, r.json()["quiz_submission"]
         )  # more sections: submission_events and submission_comments
@@ -585,9 +583,7 @@ class Server:
 
         api_id = f"{quiz.id}-{question_id}"
 
-        question_data = self._get_request(
-            f"https://api.satchelone.com/api/quiz_submission_questions/{api_id}"
-        )
+        question_data = self._get_request(f"/quiz_submission_questions/{api_id}")
         question_data = question_data.json()
         # check if question already done
         attempts = 0
@@ -613,7 +609,7 @@ class Server:
         }
 
         question_data = self._put_request(
-            f"https://api.satchelone.com/api/quiz_submission_questions/{api_id}",
+            f"/quiz_submission_questions/{api_id}",
             json=question_data,
         ).json()
 
@@ -626,7 +622,7 @@ class Server:
             time.sleep(delay)
 
         question_data = self._put_request(
-            f"https://api.satchelone.com/api/quiz_submission_questions/{api_id}",
+            f"/quiz_submission_questions/{api_id}",
             json=question_data,
         ).json()
 
@@ -667,7 +663,7 @@ class Server:
             }
         }
 
-        r = self._post_request("https://api.satchelone.com/api/comments", data=data)
+        r = self._post_request("/comments", data=data)
         r = r.json()
         users = [
             objects.Create.instantiate(objects.CommentUser, user) for user in r["users"]
@@ -685,6 +681,76 @@ class Server:
         ]
         return objects.Create.instantiate(
             objects.Comments, {"users": users, "comments": comments}
+        )
+
+    def get_student_insight(self) -> objects.StudentInsight:
+        data: dict = self._get_request(f"/student_insights/{self.user_id}").json()[
+            "student_insight"
+        ]
+        attendance = objects.Create.instantiate(
+            objects.AttendanceInsight, data["attendance"]
+        )
+        punctuality = objects.Create.instantiate(
+            objects.PunctualityInsight, data["punctuality"]
+        )
+        return objects.Create.instantiate(
+            objects.StudentInsight,
+            data | {"attendance": attendance, "punctuality": punctuality},
+        )
+
+    def get_detailed_attendance(self) -> objects.DetailedAttendance:
+        params = {"include": "attendance_codes,detailed_view"}
+        data: dict = self._get_request(
+            f"/attendance_students/{self.user_id}", params=params
+        ).json()
+        last_periods = [
+            objects.Create.instantiate(objects.DetailedAttendancePeriod, period)
+            for period in data["attendance_student"]["last_periods_info"]
+        ]
+        return objects.Create.instantiate(
+            objects.DetailedAttendance,
+            data["attendance_student"]
+            | {"last_periods_info": last_periods}
+            | data["meta"],
+        )
+
+    def get_detentions(
+        self,
+        start: datetime.datetime = None,
+        end: datetime.datetime = None,
+        limit: int = None,
+        offset: int = 0,
+        reasons: bool = True,
+        employee: bool = True,
+        detention_template: bool = True,
+    ) -> objects.Detentions:
+        if start is None:
+            start = datetime.datetime.now() - datetime.timedelta(
+                weeks=52.1429
+            )  # minus 1 year
+        if end is None:
+            end = datetime.datetime.now() + datetime.timedelta(
+                weeks=52.1429
+            )  # plus 1 year
+
+        include = ""
+        if reasons:
+            include += "reasons,"
+        if employee:
+            include += "employee,"
+        if detention_template:
+            include += "detention_template,"
+
+        params = {
+            "start_date": start,
+            "end_date": end,
+            "limit": limit,
+            "offset": offset,
+            "include": include,
+        }
+        data: dict = self._get_request("/detentions", params=params).json()
+        return objects.Create.instantiate(
+            objects.Detentions, {"detentions": data["detentions"]} | data["meta"]
         )
 
     def complete_task(self, task_id: int, state: bool):
@@ -705,9 +771,7 @@ class Server:
             },
         }
 
-        self._put_request(
-            f"https://api.satchelone.com/api/todos/{task_id}", json=json_data
-        )
+        self._put_request(f"/todos/{task_id}", json=json_data)
 
     def view_task(self, task_id: int, eventable_type: str) -> bool:
         """
@@ -732,13 +796,11 @@ class Server:
             },
         }
 
-        r = self._post_request("https://api.satchelone.com/api/events", json=json_data)
+        r = self._post_request("/events", json=json_data)
         return bool(r.text)
 
     def reset_calendar_token(self):
-        self._post_request(
-            "https://api.satchelone.com/api/icalendars/reset_calendar_token"
-        )
+        self._post_request("/icalendars/reset_calendar_token")
         self._get_data()  # refresh cache
 
     def get_timetable(
@@ -765,7 +827,7 @@ class Server:
         }
 
         r = self._get_request(
-            f"https://api.satchelone.com/api/timetable/school/{self.school_id}/student/{self.user_id}",
+            f"/timetable/school/{self.school_id}/student/{self.user_id}",
             params=params,
         )
         r = r.json()
@@ -803,6 +865,14 @@ class Server:
         )
 
     @classmethod
+    def change_client(cls, client: str):
+        clients = ["web", "android"]
+        if client not in clients:
+            raise ValueError(f"{client} is a valid client! ({clients})")
+        Client.current_client = client
+        logger.info(f"Switched to using '{client}' client ids.")
+
+    @classmethod
     def get_public_schools(
         cls, filter: str = "", limit: int = 20
     ) -> objects.PublicSchoolSearch:
@@ -822,7 +892,7 @@ class Server:
         """
         params = {"filter": filter, "limit": limit}
         r = cls.session.get(
-            "https://api.satchelone.com/api/public/school_search",
+            f"{cls.api_url}/public/school_search",
             params=params,
             headers=cls.base_headers,
         )
@@ -858,12 +928,10 @@ class Server:
             "username": username,
             "password": password,
             "school_id": school_id,
+            "verification_token": "",
         }
 
-        params = {
-            "client_id": cls.client_id,
-            "client_secret": cls.client_secret,
-        }
+        params = cls.clients[cls.current_client]
 
         response = cls.session.post(
             "https://api.satchelone.com/oauth/token",
@@ -871,6 +939,7 @@ class Server:
             data=data,
         )
         r = response.json()
+
         if response.status_code == 401:
             raise exceptions.InvalidCredentials(r, username, password, school_id)
         return objects.Create.instantiate(objects.Auth, r)

@@ -7,9 +7,9 @@ SCHOOL_ID: int = 0
 
 
 def main():
-    server = api.Server(AUTH, USER_ID, SCHOOL_ID)
+    client = api.Client(AUTH, USER_ID, SCHOOL_ID)
     behaviour = (
-        server.get_behaviour()
+        client.get_behaviour()
     )  # Get the last 20 (limit default) behaviour points (positive and negative)
     for (
         praise

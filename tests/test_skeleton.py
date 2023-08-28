@@ -10,4 +10,4 @@ __license__ = "GPL-3.0-or-later"
 def test_server():
     """API Tests"""
     with pytest.raises(api.exceptions.InvalidAuth):
-        api.Server("Should fail - Test Auth", 0, 0)
+        api.Client("Should fail - Test Auth", 0, 0)
