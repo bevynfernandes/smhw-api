@@ -815,6 +815,49 @@ class Client:
         r = self._post_request("/events", json=json_data)
         return bool(r.text)
 
+    def search_task(self, filter: str, limit: int = 7) -> objects.TaskSearchResults:
+        """
+        The `search_task` function searches for task submissions based on a filter and returns the results
+        in a structured format.
+
+        #### API Requests: 1
+
+
+        Args:
+            filter (str): The "filter" parameter is a string that specifies the search filter for the task. It
+        is used to filter the tasks based on the task name.
+            limit (int): The `limit` parameter is an optional parameter that specifies the maximum number of
+        search results to return. Defaults to 7
+
+        Returns:
+            an instance of the `TaskSearchResults` class.
+        """
+        params = {
+            "filter": filter,
+            "limit": limit,
+            "sort": "-created_at",
+            "student_id": self.user_id,
+        }
+
+        r: dict = self._get_request("/submissions", params=params).json()
+        data: dict[list, list] = {
+            "homework_submissions": [],
+            "quiz_submissions": [],
+            "spelling_test_submissions": [],
+            "class_test_submissions": [],
+            "flexible_task_submissions": [],
+            "classwork_submissions": [],
+            "selection_count": r["meta"]["selection_count"],
+        }
+        for submission_type in r:
+            for submission in r[submission_type]:
+                if submission != "selection_count":
+                    data[submission_type].append(
+                        objects.Create.instantiate(objects.TaskSearchResult, submission)
+                    )
+
+        return objects.Create.instantiate(objects.TaskSearchResults, data)
+
     def get_notifications(
         self, limit: int = 21, offset: int = 0
     ) -> objects.Notifications:
@@ -832,9 +875,9 @@ class Client:
             An instance of the `objects.Notifications` class.
         """
         params = {
-            "limit": str(limit),
-            "offset": str(offset),
-            "recipient_id": str(self.user_id),
+            "limit": limit,
+            "offset": offset,
+            "recipient_id": self.user_id,
         }
 
         r = self._get_request("/events", params=params).json()
@@ -1026,5 +1069,20 @@ class Client:
 
 
 def login(username: str, password: str, school_id: int) -> Client:
+    """
+    The `login` function takes a username, password, and school ID as input, uses them to authenticate
+    the user, and returns a `Client` object with the necessary credentials.
+
+    Args:
+        username (str): The username is a string that represents the username of the user trying to log
+    in. It is used to authenticate the user's identity. This can either be a email or a username.
+        password (str): The `password` parameter is a string that represents the user's password.
+            school_id (int): The `school_id` parameter is an integer that represents the unique identifier of
+    the school. It is used to authenticate the user and ensure that they are associated with the correct
+    school.
+
+    Returns:
+        an instance of the `Client` class.
+    """
     auth = Client.get_auth(username, password, school_id)
     return Client(f"Bearer {auth.access_token}", auth.user_id, auth.school_id)

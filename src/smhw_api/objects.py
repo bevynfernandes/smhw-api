@@ -676,6 +676,49 @@ class Classwork(DetailedTask):
 
 
 @dataclass(slots=True)
+class TaskSearchResult:
+    id: int
+    status: Any
+    student_id: int
+    student_name: str
+    student_name_sims_format: str
+    grade: Any
+    student_avatar: str
+    grading_comment: Any
+    completed: bool
+    overdue: bool
+    marked: bool
+    handed_in_on: Any
+    grade_sent: bool
+    created_at: datetime
+    updated_at: datetime
+    event_ids: list[Any]
+    comment_ids: list[Any]
+    version_ids: list[Any]
+    homework_id: int = None
+    flexible_task_id: int = None
+    # Just guessing the names
+    quiz_task_id: int = None
+    class_test_task_id: int = None
+    classwork_task_id: int = None
+
+    def __post_init__(self):
+        self.created_at = convert_datetime(self.created_at)
+        self.updated_at = convert_datetime(self.updated_at)
+
+
+@dataclass(slots=True)
+class TaskSearchResults:
+    homework_submissions: list[TaskSearchResult] = None
+    quiz_submissions: list[TaskSearchResult] = None
+    spelling_test_submissions: list[TaskSearchResult] = None
+    class_test_submissions: list[TaskSearchResult] = None
+    flexible_task_submissions: list[TaskSearchResult] = None
+    classwork_submissions: list[TaskSearchResult] = None
+    selection_count: int = 0
+
+
+@dataclass(slots=True)
 class Praise:
     """The class "Praise" contains attributes related to a kudos event, including the staff member
     involved, the reason for the kudos, and the date it occurred."""
