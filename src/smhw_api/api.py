@@ -858,7 +858,22 @@ class Client:
         """
         self._delete_request("/events/destroy_all")
 
+    def get_calendar_token(self) -> str:
+        """
+        Return the calendar token stored in the cache. This can be used to link 3rd party calendars to your Homeworks.
+
+        #### API Requests: 0
+
+        """
+        return self._data["student"].calendar_token
+
     def reset_calendar_token(self):
+        """
+        Resets the calendar token and refresh the class cache.
+
+        #### API Requests: 1
+
+        """
         self._post_request("/icalendars/reset_calendar_token")
         self._get_data()  # refresh cache
 
