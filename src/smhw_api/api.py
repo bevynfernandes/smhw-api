@@ -1023,3 +1023,8 @@ class Client:
         self._data["school"] = self.get_current_school(False)
         self._data["student"] = self.get_current_student(False)
         return self._data
+
+
+def login(username: str, password: str, school_id: int) -> Client:
+    auth = Client.get_auth(username, password, school_id)
+    return Client(f"Bearer {auth.access_token}", auth.user_id, auth.school_id)
