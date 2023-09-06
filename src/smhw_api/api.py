@@ -40,7 +40,7 @@ class Server:
         self.auth = auth
         self.user_id = user_id
         self.school_id = school_id
-        self._data: dict[objects.School, objects.Student] = {}
+        self._data: dict[objects.school.School, objects.users.Student] = {}
 
         self.headers = {
             "Authorization": self.auth,
@@ -97,7 +97,7 @@ class Server:
         completed: bool = None,
         start: datetime.datetime = None,
         end: datetime.datetime = None,
-    ) -> objects.Todo:
+    ) -> objects.todo.Todo:
         """
         The `get_todo` function retrieves a list of todos from the API based on specified parameters, such as
         add_dateless, completed, start date, and end date.
@@ -132,12 +132,12 @@ class Server:
         }
         if completed is not None:
             params["completed"] = completed
-        r = self._get_request(
-            "https://api.satchelone.com/api/todos", params=params
-        ).json()
-        return objects.make_todo(r["todos"])
+        r = self._get_request("/todos", params=params).json()
+        return objects.todo.make_todo(r["todos"])
 
-    def get_task(self, task: objects.Task, obj: list = None) -> objects.DetailedTask:
+    def get_task(
+        self, task: objects.tasks.Task, obj: list = None
+    ) -> objects.tasks.DetailedTask:
         """
         This function retrieves a detailed task object from the API based on a given task object and a list
         of objects.
@@ -149,13 +149,13 @@ class Server:
         about a specific task.
             obj (list): The `obj` parameter is a list that contains two elements: the first element is the
         class of the object that will be created and the second element is the type of task (e.g.
-        "homework", "test", "quiz"). If `obj` is not provided, it defaults to [objects.DetailedTask, objects.TaskTypes.HOMEWORK].
+        "homework", "test", "quiz"). If `obj` is not provided, it defaults to [objects.DetailedTask, objects.types.TaskTypes.HOMEWORK].
 
         Returns:
             An instance of the `DetailedTask` class.
         """
         if obj is None:
-            obj = [objects.DetailedTask, objects.TaskTypes.HOMEWORK]
+            obj = [objects.tasks.DetailedTask, objects.types.TaskTypes.HOMEWORK]
         if obj[1].lower()[-1] != "s":
             api_path = f"{obj[1].lower()}s"
         else:
@@ -169,16 +169,18 @@ class Server:
                 f"Task is not found! ({task.class_task_type=})"
             )
         r = r.json()
-        return objects.Create.instantiate(obj[0], r[obj[1].lower()] | asdict(task))
+        return objects.tools.Create.instantiate(
+            obj[0], r[obj[1].lower()] | asdict(task)
+        )
 
     def get_auto_detailed_task(
-        self, task: objects.Task
+        self, task: objects.tasks.Task
     ) -> (
-        objects.DetailedTask
-        | objects.Quiz
-        | objects.ClassTest
-        | objects.Classwork
-        | objects.FlexibleTask
+        objects.tasks.DetailedTask
+        | objects.tasks.Quiz
+        | objects.tasks.ClassTest
+        | objects.tasks.Classwork
+        | objects.tasks.FlexibleTask
     ):
         """
         This function takes in a task object and returns a more detailed task object based on its type.
@@ -195,28 +197,28 @@ class Server:
         `objects.FlexibleTask`. The specific type of object returned depends on the `class_task_type`
         attribute of the `task` object passed as an argument to the function.
         """
-        if task.class_task_type == objects.TaskTypes.HOMEWORK:
+        if task.class_task_type == objects.types.TaskTypes.HOMEWORK:
             return self.get_task(task)
-        elif task.class_task_type == objects.TaskTypes.QUIZ:
+        elif task.class_task_type == objects.types.TaskTypes.QUIZ:
             return self.get_quiz(task)
-        elif task.class_task_type == objects.TaskTypes.CLASSTEST:
+        elif task.class_task_type == objects.types.TaskTypes.CLASSTEST:
             return self.get_task(
-                task, [objects.ClassTest, "class_test"]
+                task, [objects.tasks.ClassTest, "class_test"]
             )  # no special details
-        elif task.class_task_type == objects.TaskTypes.CLASSWORK:
+        elif task.class_task_type == objects.types.TaskTypes.CLASSWORK:
             return self.get_task(
-                task, [objects.Classwork, objects.TaskTypes.CLASSWORK]
+                task, [objects.tasks.Classwork, objects.types.TaskTypes.CLASSWORK]
             )  # no special details
-        elif task.class_task_type == objects.TaskTypes.FLEXIBLETASK:
+        elif task.class_task_type == objects.types.TaskTypes.FLEXIBLETASK:
             return self.get_task(
-                task, [objects.FlexibleTask, "flexible_task"]
+                task, [objects.tasks.FlexibleTask, "flexible_task"]
             )  # no special details
         else:
             raise exceptions.InvalidTask(
                 f"Task could not be auto-detected! ({task.class_task_type=})"
             )
 
-    def get_quiz(self, task: objects.Task) -> objects.Quiz:
+    def get_quiz(self, task: objects.tasks.Task) -> objects.tasks.Quiz:
         """
         This function retrieves a quiz from the API and creates a Quiz object with its associated questions.
 
@@ -242,14 +244,14 @@ class Server:
         ).json()
 
         nqq = [
-            objects.Create.instantiate(objects.Question, question)
+            objects.tools.Create.instantiate(objects.tasks.Question, question)
             for question in nr["quiz_questions"]
         ]
-        return objects.Create.instantiate(
-            objects.Quiz, r | {"questions": nqq} | asdict(task)
+        return objects.tools.Create.instantiate(
+            objects.tasks.Quiz, r | {"questions": nqq} | asdict(task)
         )
 
-    def get_user(self, user_id: int = None) -> objects.User:
+    def get_user(self, user_id: int = None) -> objects.user.User:
         """
         Retrieves user information from an API and returns a User object.
 
@@ -264,7 +266,7 @@ class Server:
         r = self._get_request(f"https://api.satchelone.com/api/users/{user_id}")
         if r.status_code == 404:
             raise exceptions.InvalidUser(user_id)
-        return objects.Create.instantiate(objects.User, r["user"])
+        return objects.tools.Create.instantiate(objects.User, r["user"])
 
     def get_current_student(
         self,
@@ -273,7 +275,7 @@ class Server:
         school: bool = False,
         package: bool = False,
         premium_features: bool = False,
-    ) -> objects.Student:
+    ) -> objects.users.Student:
         """
         Retrieves student information from the API, including optional additional
         data such as user private info, school info, package info, and premium features.
@@ -321,19 +323,19 @@ class Server:
         }
 
         classes = [
-            objects.Create.instantiate(objects.Class, c)
-            for c in self._get_request(
-                "https://api.satchelone.com/api/class_groups", params=params
-            ).json()["class_groups"]
+            objects.tools.Create.instantiate(objects.subjects.Class, c)
+            for c in self._get_request("/class_groups", params=params).json()[
+                "class_groups"
+            ]
         ]
-        return objects.Create.instantiate(
-            objects.Student,
+        return objects.tools.Create.instantiate(
+            objects.users.Student,
             response["student"]
             | response["user_private_infos"][0]
             | {"classes": classes},
         )
 
-    def get_current_school(self, cached: bool = True) -> objects.School:
+    def get_current_school(self, cached: bool = True) -> objects.school.School:
         """
         This function returns the current school object.
         This data was fetched when the class was created.
@@ -354,17 +356,17 @@ class Server:
             raise exceptions.InvalidAuth(self.auth, self.user_id, self.school_id)
         response = response.json()
         subjects = [
-            objects.Create.instantiate(objects.Subject, subject)
+            objects.tools.Create.instantiate(objects.subjects.Subject, subject)
             for subject in self._get_request(
                 "https://api.satchelone.com/api/subjects",
                 params={"school_id": self.school_id},
             ).json()["subjects"]
         ]
-        return objects.Create.instantiate(
-            objects.School, response["schools"][0] | {"subjects": subjects}
+        return objects.tools.Create.instantiate(
+            objects.school.School, response["schools"][0] | {"subjects": subjects}
         )
 
-    def get_current_parents(self) -> list[objects.Parent]:
+    def get_current_parents(self) -> list[objects.users.Parent]:
         """
         This function retrieves the current parents associated with a student from an API and returns them
         as a list of Parent objects.
@@ -377,7 +379,7 @@ class Server:
         params = {"ids[]": self._data["student"].parent_ids}
         r = self._get_request("https://api.satchelone.com/api/parents", params=params)
         return [
-            objects.Create.instantiate(objects.Parent, user)
+            objects.tools.Create.instantiate(objects.users.Parent, user)
             for user in r.json()["parents"]
         ]
 
@@ -406,7 +408,7 @@ class Server:
         )
         return r
 
-    def get_employee(self, id: int | list[int]) -> objects.Employee:
+    def get_employee(self, id: int | list[int]) -> objects.users.Employee:
         """
         This function retrieves an employee's data from the API using their ID and returns it as an Employee
         object or a list of Employee objects.
@@ -430,14 +432,17 @@ class Server:
             raise exceptions.InvalidUser(f"Employee not found! ({id=})")
         try:
             r = r.json()["user"]
-            return objects.Create.instantiate(objects.Employee, r)
+            return objects.tools.Create.instantiate(objects.users.Employee, r)
         except KeyError:
             r = r.json()["users"]
-            return [objects.Create.instantiate(objects.Employee, user) for user in r]
+            return [
+                objects.tools.Create.instantiate(objects.users.Employee, user)
+                for user in r
+            ]
 
     def get_calendar(
         self, date: datetime.datetime = None
-    ) -> list[objects.PersonalCalendarTask]:
+    ) -> list[objects.calendar.PersonalCalendarTask]:
         """
         The `get_calendar` function retrieves personal calendar tasks from the API based on a specified date
         or the current date if none is provided.
@@ -458,13 +463,15 @@ class Server:
             "https://api.satchelone.com/api/personal_calendar_tasks", params=params
         )
         return [
-            objects.Create.instantiate(objects.PersonalCalendarTask, data)
+            objects.tools.Create.instantiate(
+                objects.calendar.PersonalCalendarTask, data
+            )
             for data in r.json()["personal_calendar_tasks"]
         ]
 
     def get_school_calendar(  # TODO: ADD FILTERS
         self, date: datetime.datetime = None
-    ) -> list[objects.SchoolCalendarTask]:
+    ) -> list[objects.calendar.SchoolCalendarTask]:
         """
         The `get_school_calendar` function retrieves the school calendar tasks for a given date or the
         current date if none is provided.
@@ -487,11 +494,13 @@ class Server:
         }
         r = self._get_request("https://api.satchelone.com/api/calendars", params=params)
         return [
-            objects.Create.instantiate(objects.SchoolCalendarTask, data)
+            objects.tools.Create.instantiate(objects.calendar.SchoolCalendarTask, data)
             for data in r.json()["calendars"]
         ]
 
-    def get_behaviour(self, limit: int = 20, offset: int = 0) -> objects.Behaviour:
+    def get_behaviour(
+        self, limit: int = 20, offset: int = 0
+    ) -> objects.praise.Behaviour:
         """
         This function retrieves behaviour data for a student from the API.
 
@@ -518,23 +527,25 @@ class Server:
         )
         r = r.json()
         praises = [
-            objects.Create.instantiate(objects.Praise, praise)
+            objects.tools.Create.instantiate(objects.praise.Praise, praise)
             for praise in r["student_kudos"]["student_praises"]
         ]
-        psum = objects.Create.instantiate(
-            objects.PraiseSummary,
-            self._get_request(
-                f"https://api.satchelone.com/api/student_praise_summaries/{self.user_id}"
-            ).json()["student_praise_summary"],
+        psum = objects.tools.Create.instantiate(
+            objects.praise.PraiseSummary,
+            self._get_request(f"/student_praise_summaries/{self.user_id}").json()[
+                "student_praise_summary"
+            ],
         )
-        return objects.Create.instantiate(
-            objects.Behaviour,
+        return objects.tools.Create.instantiate(
+            objects.praise.Behaviour,
             r["student_kudos"]
             | {"student_praises": praises}
             | {"student_praise_summary": psum},
         )
 
-    def get_quiz_submission(self, quiz: objects.Quiz) -> objects.QuizSubmission:
+    def get_quiz_submission(
+        self, quiz: objects.tasks.Quiz
+    ) -> objects.tasks.QuizSubmission:
         """
         The function `get_quiz_submission` retrieves a detailed quiz submission object from an API.
 
@@ -550,15 +561,13 @@ class Server:
             raise exceptions.TaskNotDetailed(
                 f"Quiz ID: {quiz.id} | Is not a detailed task, you can fetch it's detailed version by using the function self.get_quiz()!"
             )
-        r = self._get_request(
-            f"https://api.satchelone.com/api/quiz_submissions/{quiz.submission_ids[0]}"
-        )
-        return objects.Create.instantiate(
-            objects.QuizSubmission, r.json()["quiz_submission"]
+        r = self._get_request(f"/quiz_submissions/{quiz.submission_ids[0]}")
+        return objects.tools.Create.instantiate(
+            objects.tasks.QuizSubmission, r.json()["quiz_submission"]
         )  # more sections: submission_events and submission_comments
 
     def put_quiz_answer(
-        self, quiz: objects.Quiz, question_id: int, answer: str, delay: int = 0
+        self, quiz: objects.tasks.Quiz, question_id: int, answer: str, delay: int = 0
     ) -> bool:
         """
         The `send_quiz_answer` function sends a quiz answer to the API and returns whether the
@@ -636,7 +645,7 @@ class Server:
 
     # TODO: I HAVE NO WAY OF TESTING THIS RIGHT NOW
     def post_comment(
-        self, message: str, task: objects.Task, skip_profanity_check: bool = False
+        self, message: str, task: objects.tasks.Task, skip_profanity_check: bool = False
     ):
         """
         Post a comment on a task, with an option to skip profanity check.
@@ -670,21 +679,95 @@ class Server:
         r = self._post_request("https://api.satchelone.com/api/comments", data=data)
         r = r.json()
         users = [
-            objects.Create.instantiate(objects.CommentUser, user) for user in r["users"]
+            objects.tools.Create.instantiate(objects.comments.CommentUser, user)
+            for user in r["users"]
         ]
         commentable = {
-            "commentable": objects.Create.instantiate(
-                objects.CommentableTask, r["comment"]["commentable"]
+            "commentable": objects.tools.Create.instantiate(
+                objects.comments.CommentableTask, r["comment"]["commentable"]
             )
         }
         del r["comment"]["commentable"]
         comments = [
-            objects.Create.instantiate(
-                objects.Comment, r["comment"] | {"commentable": commentable}
+            objects.tools.Create.instantiate(
+                objects.comments.Comment, r["comment"] | {"commentable": commentable}
             )
         ]
-        return objects.Create.instantiate(
-            objects.Comments, {"users": users, "comments": comments}
+        return objects.tools.Create.instantiate(
+            objects.comments.Comments, {"users": users, "comments": comments}
+        )
+
+    def get_student_insight(self) -> objects.insights.StudentInsight:
+        data: dict = self._get_request(f"/student_insights/{self.user_id}").json()[
+            "student_insight"
+        ]
+        attendance = objects.tools.Create.instantiate(
+            objects.insights.AttendanceInsight, data["attendance"]
+        )
+        punctuality = objects.tools.Create.instantiate(
+            objects.insights.PunctualityInsight, data["punctuality"]
+        )
+        return objects.tools.Create.instantiate(
+            objects.insights.StudentInsight,
+            data | {"attendance": attendance, "punctuality": punctuality},
+        )
+
+    def get_detailed_attendance(self) -> objects.insights.DetailedAttendance:
+        params = {"include": "attendance_codes,detailed_view"}
+        data: dict = self._get_request(
+            f"/attendance_students/{self.user_id}", params=params
+        ).json()
+        last_periods = [
+            objects.tools.Create.instantiate(
+                objects.insights.DetailedAttendancePeriod, period
+            )
+            for period in data["attendance_student"]["last_periods_info"]
+        ]
+        return objects.tools.Create.instantiate(
+            objects.DetailedAttendance,
+            data["attendance_student"]
+            | {"last_periods_info": last_periods}
+            | data["meta"],
+        )
+
+    def get_detentions(
+        self,
+        start: datetime.datetime = None,
+        end: datetime.datetime = None,
+        limit: int = None,
+        offset: int = 0,
+        reasons: bool = True,
+        employee: bool = True,
+        detention_template: bool = True,
+    ) -> objects.insights.Detentions:
+        if start is None:
+            start = datetime.datetime.now() - datetime.timedelta(
+                weeks=52.1429
+            )  # minus 1 year
+        if end is None:
+            end = datetime.datetime.now() + datetime.timedelta(
+                weeks=52.1429
+            )  # plus 1 year
+
+        include = ""
+        if reasons:
+            include += "reasons,"
+        if employee:
+            include += "employee,"
+        if detention_template:
+            include += "detention_template,"
+
+        params = {
+            "start_date": start,
+            "end_date": end,
+            "limit": limit,
+            "offset": offset,
+            "include": include,
+        }
+        data: dict = self._get_request("/detentions", params=params).json()
+        return objects.tools.Create.instantiate(
+            objects.insights.Detentions,
+            {"detentions": data["detentions"]} | data["meta"],
         )
 
     def complete_task(self, task_id: int, state: bool):

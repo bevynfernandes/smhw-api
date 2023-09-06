@@ -21,8 +21,6 @@ logger.remove(0)
 __logid = logger.add(sys.stderr, level="INFO")
 
 from .api import *
-from . import exceptions
-from . import objects
 
 
 def set_debug(state: bool):
