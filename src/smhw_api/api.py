@@ -107,6 +107,22 @@ class Client:
             f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
         )
 
+    def _delete_request(self, url, *args, **kwargs) -> httpx.Response:
+        """
+        This function sends an HTTP DELETE request to the specified URL with the custom headers and returns
+        the response.
+
+        Args:
+            url: The URL of the HTTP request that the function will send a DELETE request to.
+
+        Returns:
+            A HTTP response object of the type `httpx.Response`.
+        """
+        logger.debug(f"[DELETE] request: {url=}, {kwargs}")
+        return self.session.delete(
+            f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
+        )
+
     def get_todo(
         self,
         add_dateless: bool = True,
@@ -799,6 +815,49 @@ class Client:
         r = self._post_request("/events", json=json_data)
         return bool(r.text)
 
+    def get_notifications(
+        self, limit: int = 21, offset: int = 0
+    ) -> objects.Notifications:
+        """
+        Retrieves notifications for a user with a specified limit and offset.
+
+        #### API Requests: 1
+
+        Args:
+            limit (int): The `limit` parameter specifies the maximum number of notifications to retrieve. Defaults to 21
+            offset (int): The `offset` parameter is used to specify the starting point of the notifications to
+        retrieve. It determines the number of notifications to skip before returning the results. Defaults to 0
+
+        Returns:
+            An instance of the `objects.Notifications` class.
+        """
+        params = {
+            "limit": str(limit),
+            "offset": str(offset),
+            "recipient_id": str(self.user_id),
+        }
+
+        r = self._get_request("/events", params=params).json()
+        notifs = []
+        for notif in r["events"]:
+            if "notice" in notif:
+                notif["notice"] = objects.Create.instantiate(
+                    objects.NotificationNotice, notif["notice"]
+                )
+            notifs.append(objects.Create.instantiate(objects.Notification, notif))
+        return objects.Create.instantiate(
+            objects.Notifications, {"events": notifs} | r["meta"]
+        )
+
+    def delete_notifications(self):
+        """
+        Deletes all notifacations, this is an irreversible action!
+
+        #### API Requests: 1
+
+        """
+        self._delete_request("/events/destroy_all")
+
     def reset_calendar_token(self):
         self._post_request("/icalendars/reset_calendar_token")
         self._get_data()  # refresh cache
@@ -867,6 +926,7 @@ class Client:
     @classmethod
     def change_client(cls, client: str):
         clients = ["web", "android"]
+        client = client.casefold()
         if client not in clients:
             raise ValueError(f"{client} is a valid client! ({clients})")
         Client.current_client = client

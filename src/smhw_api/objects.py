@@ -12,6 +12,7 @@ from loguru import logger
 
 # Custom Types
 AM_OR_PM = Literal["am", "pm"]
+HTML: str = "HTML CODE"
 
 
 def convert_datetime(var: str | datetime) -> datetime:
@@ -489,6 +490,45 @@ class Student(User):
 @dataclass(slots=True)
 class Employee(User):
     pass
+
+
+@dataclass(slots=True)
+class NotificationNotice:
+    id: int
+    title: str
+    message: HTML
+
+
+@dataclass(slots=True)
+class Notification:
+    id: int
+    user_id: Any
+    recipient_id: int
+    read: bool
+    event_type: str
+    student_id: int
+    created_at: datetime
+    updated_at: datetime
+    user_name: str
+    eventable_type: str
+    assignment_id: Any
+    assignment_type: Any
+    submission_id: Any
+    parent_forename: Any
+    parent_surname: Any
+    student_forename: str
+    truancy_count: Any
+    notice: NotificationNotice | None = None
+
+    def __post_init__(self):
+        self.created_at = convert_datetime(self.created_at)
+        self.updated_at = convert_datetime(self.updated_at)
+
+
+@dataclass(slots=True)
+class Notifications:
+    events: list[Notification]
+    selection_count: int
 
 
 @dataclass(slots=True)
