@@ -2,6 +2,7 @@
 
 [![Project generated with PyScaffold](https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold)](https://pyscaffold.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
+![License](https://img.shields.io/github/license/EpicGamerCodes/smhw-api)
 
 ## Table of Contents
 
@@ -14,7 +15,11 @@
 
 ## Introduction
 
-The `smhw-api` project allows users to connect to the Satchel: One API using their user credentials. The project is designed to run on Python 3.11. The responses are returned as objects which are fully type hinted (see `src/smhw_api/objects.py`). Please note that there is no rate limiting kept by the script yet, so make sure you send API requests appropriately. The script uses the Web client ids (to switch to the mobile app client, replace the `Client.client_id` and `Client.client_secret` variables).
+The `smhw-api` project allows users to connect to the Satchel: One API using their user credentials. The project is designed to run on Python 3.11.
+The responses are returned as objects which are fully type hinted (see `src/smhw_api/objects.py`).
+Please note that there is no rate limiting kept by the script yet, so make sure you send API requests appropriately. The script uses the Web client ids by default (to switch to the mobile app client, use the function `Client.change_client()`).
+
+To view and install the latest changes, use the [dev branch](https://github.com/EpicGamerCodes/smhw-api/tree/dev).
 
 ## Features
 
@@ -36,6 +41,10 @@ As of now, the project can perform the following tasks (examples can be viewed i
 - Marking tasks as viewed
 - Fetching the user's timetable
 - Fetching public school data (used to login)
+- Fetching student attendance
+- Fetching student detentions
+- Searching for tasks
+- Fetching Notifications
 
 ## Installation
 
@@ -50,7 +59,7 @@ As of now, the project can perform the following tasks (examples can be viewed i
 
 ### From Source
 
-1. Clone the repository:
+1. Clone the repository: (use `-b dev` to use new commits)
 
      ```bash
      git clone https://github.com/EpicGamerCodes/smhw-api.git
@@ -70,14 +79,17 @@ As of now, the project can perform the following tasks (examples can be viewed i
 
 ## Dependencies
 
-The project requires 2 dependencies for running:
+The project requires 3 dependencies for running:
 
-- `httpx[http2]` - For HTTP/2 requests
+- `httpx` - Use HTTP/2 requests
+- `h2` - For supporting HTTP/2 requests
 - `loguru` - For simple and better formatted logs
 
 ## Disclaimer
 
 Users are responsible for their own actions while using this API. Please ensure to comply with any guidelines provided by Satchel: One API. Any consequences resulting from the misuse of this API are solely the user's responsibility.
+
+This project does not use the exact same headers as the Web or Android client yet, therefore Satchel: One can detect if you are using this project.
 
 ## License
 
