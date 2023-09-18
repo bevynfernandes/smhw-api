@@ -167,7 +167,9 @@ class Client:
         r = self._get_request("/todos", params=params).json()
         return objects.make_todo(r["todos"])
 
-    def get_task(self, task: objects.Task, obj: list = None) -> objects.DetailedTask:
+    def get_detailed_task(
+        self, task: objects.Task, obj: list = None
+    ) -> objects.DetailedTask:
         """
         This function retrieves a detailed task object from the API based on a given task object and a list
         of objects.
@@ -175,8 +177,7 @@ class Client:
         #### API Requests: 1
 
         Args:
-            task (objects.Task): The task parameter is an object of the Task class, which contains detailed information
-        about a specific task.
+            task (objects.Task): A task.
             obj (list): The `obj` parameter is a list that contains two elements: the first element is the
         class of the object that will be created and the second element is the type of task (e.g.
         "homework", "test", "quiz"). If `obj` is not provided, it defaults to [objects.DetailedTask, objects.TaskTypes.HOMEWORK].
@@ -224,19 +225,19 @@ class Client:
         attribute of the `task` object passed as an argument to the function.
         """
         if task.class_task_type == objects.TaskTypes.HOMEWORK:
-            return self.get_task(task)
+            return self.get_detailed_task(task)
         elif task.class_task_type == objects.TaskTypes.QUIZ:
             return self.get_quiz(task)
         elif task.class_task_type == objects.TaskTypes.CLASSTEST:
-            return self.get_task(
+            return self.get_detailed_task(
                 task, [objects.ClassTest, "class_test"]
             )  # no special details
         elif task.class_task_type == objects.TaskTypes.CLASSWORK:
-            return self.get_task(
+            return self.get_detailed_task(
                 task, [objects.Classwork, objects.TaskTypes.CLASSWORK]
             )  # no special details
         elif task.class_task_type == objects.TaskTypes.FLEXIBLETASK:
-            return self.get_task(
+            return self.get_detailed_task(
                 task, [objects.FlexibleTask, "flexible_task"]
             )  # no special details
         else:
@@ -578,7 +579,7 @@ class Client:
         The `send_quiz_answer` function sends a quiz answer to the API and returns whether the
         answer was correct or not.
 
-        #### API Requests: 2<
+        #### API Requests: 2
 
         Args:
             quiz (objects.Quiz): Represents a quiz that a user is taking.
@@ -858,6 +859,14 @@ class Client:
 
         return objects.Create.instantiate(objects.TaskSearchResults, data)
 
+    def get_task_from_id(
+        self, task_id: int, type: str = "homeworks"
+    ) -> objects.SearchedTask:
+        r = self._get_request(f"/{type}/{task_id}")
+        if r.status_code == 404:
+            raise exceptions.InvalidTask(f"Task is not found! ({type=} | {task_id=})")
+        return objects.Create.instantiate(objects.SearchedTask, r.json()["homework"])
+
     def get_notifications(
         self, limit: int = 21, offset: int = 0
     ) -> objects.Notifications:
@@ -894,7 +903,7 @@ class Client:
 
     def delete_notifications(self):
         """
-        Deletes all notifacations, this is an irreversible action!
+        Deletes all notifications, this is an irreversible action!
 
         #### API Requests: 1
 

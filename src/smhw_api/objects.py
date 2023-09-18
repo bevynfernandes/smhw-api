@@ -432,7 +432,6 @@ class School:
     detentions_writeback: bool
     documents: bool
     xod_documents: bool
-    contact_scope_consented: bool
     address_scope_consented: bool
     show_staff_codes_for_public: bool
     referred_incidents_enabled: bool
@@ -543,6 +542,31 @@ class Parent(User):
 
 
 @dataclass(slots=True)
+class SearchedTask:
+    """The class Task defines attributes and methods for a task, including due date, completion status,
+    task details, and submission information. (Contains less infomation than a normal `Task`)
+    """
+
+    id: int
+    due_on: datetime
+    submission_type: bool
+    submission_status: Any
+    class_group_name: str
+    subject: str
+    teacher_name: str
+    submission_status: bool | None
+
+    def __post_init__(self):
+        self.due_on = convert_datetime(self.due_on)
+
+    def is_detailed(self) -> bool:
+        """Is the task detailed or not?
+
+        This task is not detailed."""
+        return False
+
+
+@dataclass(slots=True)
 class Task:
     """The class Task defines attributes and methods for a task, including due date, completion status,
     task details, and submission information.
@@ -563,7 +587,7 @@ class Task:
     subject: str
     teacher_name: str
     issued_on: datetime
-    submission_status: bool | None  # not sure what this does
+    submission_status: bool | None
     has_attachments: bool
 
     def __post_init__(self):
