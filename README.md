@@ -19,7 +19,7 @@ The `smhw-api` project allows users to connect to the Satchel: One API using the
 The responses are returned as objects which are fully type hinted (see `src/smhw_api/objects.py`).
 Please note that there is no rate limiting kept by the script yet, so make sure you send API requests appropriately. The script uses the Web client ids by default (to switch to the mobile app client, use the function `Client.change_client()`).
 
-To view and install the latest changes, use the [dev branch](https://github.com/EpicGamerCodes/smhw-api/tree/dev).
+To view and install the latest changes (and for some bug fixes), use the [dev branch](https://github.com/EpicGamerCodes/smhw-api/tree/dev).
 
 ## Features
 
