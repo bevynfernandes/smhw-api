@@ -12,6 +12,7 @@ from loguru import logger
 
 # Custom Types
 AM_OR_PM = Literal["am", "pm"]
+HTML: str = "HTML CODE"
 
 
 def convert_datetime(var: str | datetime) -> datetime:
@@ -61,7 +62,9 @@ class Create:
 
         fieldSet = cls.classFieldCache[classToInstantiate]
         filteredArgDict = {k: v for k, v in argDict.items() if k in fieldSet}
-        return classToInstantiate(**filteredArgDict)
+        return classToInstantiate(
+            **filteredArgDict
+        )  # Hopefully in the future I'll be able to make it autofill to None
 
 
 class TaskTypes(str, enum.Enum):
@@ -431,7 +434,6 @@ class School:
     detentions_writeback: bool
     documents: bool
     xod_documents: bool
-    contact_scope_consented: bool
     address_scope_consented: bool
     show_staff_codes_for_public: bool
     referred_incidents_enabled: bool
@@ -471,7 +473,6 @@ class Student(User):
     has_filled_details: bool
     intercom_enabled: bool
     left_at: bool
-    sims_id: str
     anonymous: bool
     disabled: bool
     created_at: datetime
@@ -492,6 +493,45 @@ class Employee(User):
 
 
 @dataclass(slots=True)
+class NotificationNotice:
+    id: int
+    title: str
+    message: HTML
+
+
+@dataclass(slots=True)
+class Notification:
+    id: int
+    user_id: Any
+    recipient_id: int
+    read: bool
+    event_type: str
+    student_id: int
+    created_at: datetime
+    updated_at: datetime
+    user_name: str
+    eventable_type: str
+    assignment_id: Any
+    assignment_type: Any
+    submission_id: Any
+    parent_forename: Any
+    parent_surname: Any
+    student_forename: str
+    truancy_count: Any
+    notice: NotificationNotice | None = None
+
+    def __post_init__(self):
+        self.created_at = convert_datetime(self.created_at)
+        self.updated_at = convert_datetime(self.updated_at)
+
+
+@dataclass(slots=True)
+class Notifications:
+    events: list[Notification]
+    selection_count: int
+
+
+@dataclass(slots=True)
 class Parent(User):
     """The class "Parent" inherits from the class "User" and includes attributes for student IDs, student
     names, and parent consent.
@@ -500,6 +540,31 @@ class Parent(User):
     student_ids: list[int]
     student_names: list[str]
     parent_consent: bool
+
+
+@dataclass(slots=True)
+class SearchedTask:
+    """The class Task defines attributes and methods for a task, including due date, completion status,
+    task details, and submission information. (Contains less infomation than a normal `Task`)
+    """
+
+    id: int
+    due_on: datetime
+    submission_type: bool
+    submission_status: Any
+    class_group_name: str
+    subject: str
+    teacher_name: str
+    submission_status: bool | None
+
+    def __post_init__(self):
+        self.due_on = convert_datetime(self.due_on)
+
+    def is_detailed(self) -> bool:
+        """Is the task detailed or not?
+
+        This task is not detailed."""
+        return False
 
 
 @dataclass(slots=True)
@@ -523,7 +588,7 @@ class Task:
     subject: str
     teacher_name: str
     issued_on: datetime
-    submission_status: bool | None  # not sure what this does
+    submission_status: bool | None
     has_attachments: bool
 
     def __post_init__(self):
@@ -633,6 +698,49 @@ class FlexibleTask(DetailedTask):
 @dataclass(slots=True)
 class Classwork(DetailedTask):
     pass
+
+
+@dataclass(slots=True)
+class TaskSearchResult:
+    id: int
+    status: Any
+    student_id: int
+    student_name: str
+    student_name_sims_format: str
+    grade: Any
+    student_avatar: str
+    grading_comment: Any
+    completed: bool
+    overdue: bool
+    marked: bool
+    handed_in_on: Any
+    grade_sent: bool
+    created_at: datetime
+    updated_at: datetime
+    event_ids: list[Any]
+    comment_ids: list[Any]
+    version_ids: list[Any]
+    homework_id: int = None
+    flexible_task_id: int = None
+    # Just guessing the names
+    quiz_task_id: int = None
+    class_test_task_id: int = None
+    classwork_task_id: int = None
+
+    def __post_init__(self):
+        self.created_at = convert_datetime(self.created_at)
+        self.updated_at = convert_datetime(self.updated_at)
+
+
+@dataclass(slots=True)
+class TaskSearchResults:
+    homework_submissions: list[TaskSearchResult] = None
+    quiz_submissions: list[TaskSearchResult] = None
+    spelling_test_submissions: list[TaskSearchResult] = None
+    class_test_submissions: list[TaskSearchResult] = None
+    flexible_task_submissions: list[TaskSearchResult] = None
+    classwork_submissions: list[TaskSearchResult] = None
+    selection_count: int = 0
 
 
 @dataclass(slots=True)

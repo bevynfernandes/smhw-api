@@ -107,6 +107,22 @@ class Client:
             f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
         )
 
+    def _delete_request(self, url, *args, **kwargs) -> httpx.Response:
+        """
+        This function sends an HTTP DELETE request to the specified URL with the custom headers and returns
+        the response.
+
+        Args:
+            url: The URL of the HTTP request that the function will send a DELETE request to.
+
+        Returns:
+            A HTTP response object of the type `httpx.Response`.
+        """
+        logger.debug(f"[DELETE] request: {url=}, {kwargs}")
+        return self.session.delete(
+            f"{self.api_url}{url}", headers=self.headers, *args, **kwargs
+        )
+
     def get_todo(
         self,
         add_dateless: bool = True,
@@ -151,7 +167,9 @@ class Client:
         r = self._get_request("/todos", params=params).json()
         return objects.make_todo(r["todos"])
 
-    def get_task(self, task: objects.Task, obj: list = None) -> objects.DetailedTask:
+    def get_detailed_task(
+        self, task: objects.Task, obj: list = None
+    ) -> objects.DetailedTask:
         """
         This function retrieves a detailed task object from the API based on a given task object and a list
         of objects.
@@ -159,8 +177,7 @@ class Client:
         #### API Requests: 1
 
         Args:
-            task (objects.Task): The task parameter is an object of the Task class, which contains detailed information
-        about a specific task.
+            task (objects.Task): A task.
             obj (list): The `obj` parameter is a list that contains two elements: the first element is the
         class of the object that will be created and the second element is the type of task (e.g.
         "homework", "test", "quiz"). If `obj` is not provided, it defaults to [objects.DetailedTask, objects.TaskTypes.HOMEWORK].
@@ -208,19 +225,19 @@ class Client:
         attribute of the `task` object passed as an argument to the function.
         """
         if task.class_task_type == objects.TaskTypes.HOMEWORK:
-            return self.get_task(task)
+            return self.get_detailed_task(task)
         elif task.class_task_type == objects.TaskTypes.QUIZ:
             return self.get_quiz(task)
         elif task.class_task_type == objects.TaskTypes.CLASSTEST:
-            return self.get_task(
+            return self.get_detailed_task(
                 task, [objects.ClassTest, "class_test"]
             )  # no special details
         elif task.class_task_type == objects.TaskTypes.CLASSWORK:
-            return self.get_task(
+            return self.get_detailed_task(
                 task, [objects.Classwork, objects.TaskTypes.CLASSWORK]
             )  # no special details
         elif task.class_task_type == objects.TaskTypes.FLEXIBLETASK:
-            return self.get_task(
+            return self.get_detailed_task(
                 task, [objects.FlexibleTask, "flexible_task"]
             )  # no special details
         else:
@@ -562,7 +579,7 @@ class Client:
         The `send_quiz_answer` function sends a quiz answer to the API and returns whether the
         answer was correct or not.
 
-        #### API Requests: 2<
+        #### API Requests: 2
 
         Args:
             quiz (objects.Quiz): Represents a quiz that a user is taking.
@@ -799,7 +816,116 @@ class Client:
         r = self._post_request("/events", json=json_data)
         return bool(r.text)
 
+    def search_task(self, filter: str, limit: int = 7) -> objects.TaskSearchResults:
+        """
+        The `search_task` function searches for task submissions based on a filter and returns the results
+        in a structured format.
+
+        #### API Requests: 1
+
+
+        Args:
+            filter (str): The "filter" parameter is a string that specifies the search filter for the task. It
+        is used to filter the tasks based on the task name.
+            limit (int): The `limit` parameter is an optional parameter that specifies the maximum number of
+        search results to return. Defaults to 7
+
+        Returns:
+            an instance of the `TaskSearchResults` class.
+        """
+        params = {
+            "filter": filter,
+            "limit": limit,
+            "sort": "-created_at",
+            "student_id": self.user_id,
+        }
+
+        r: dict = self._get_request("/submissions", params=params).json()
+        data: dict[list, list] = {
+            "homework_submissions": [],
+            "quiz_submissions": [],
+            "spelling_test_submissions": [],
+            "class_test_submissions": [],
+            "flexible_task_submissions": [],
+            "classwork_submissions": [],
+            "selection_count": r["meta"]["selection_count"],
+        }
+        for submission_type in r:
+            for submission in r[submission_type]:
+                if submission != "selection_count":
+                    data[submission_type].append(
+                        objects.Create.instantiate(objects.TaskSearchResult, submission)
+                    )
+
+        return objects.Create.instantiate(objects.TaskSearchResults, data)
+
+    def get_task_from_id(
+        self, task_id: int, type: str = "homeworks"
+    ) -> objects.SearchedTask:
+        r = self._get_request(f"/{type}/{task_id}")
+        if r.status_code == 404:
+            raise exceptions.InvalidTask(f"Task is not found! ({type=} | {task_id=})")
+        return objects.Create.instantiate(objects.SearchedTask, r.json()["homework"])
+
+    def get_notifications(
+        self, limit: int = 21, offset: int = 0
+    ) -> objects.Notifications:
+        """
+        Retrieves notifications for a user with a specified limit and offset.
+
+        #### API Requests: 1
+
+        Args:
+            limit (int): The `limit` parameter specifies the maximum number of notifications to retrieve. Defaults to 21
+            offset (int): The `offset` parameter is used to specify the starting point of the notifications to
+        retrieve. It determines the number of notifications to skip before returning the results. Defaults to 0
+
+        Returns:
+            An instance of the `objects.Notifications` class.
+        """
+        params = {
+            "limit": limit,
+            "offset": offset,
+            "recipient_id": self.user_id,
+        }
+
+        r = self._get_request("/events", params=params).json()
+        notifs = []
+        for notif in r["events"]:
+            if "notice" in notif:
+                notif["notice"] = objects.Create.instantiate(
+                    objects.NotificationNotice, notif["notice"]
+                )
+            notifs.append(objects.Create.instantiate(objects.Notification, notif))
+        return objects.Create.instantiate(
+            objects.Notifications, {"events": notifs} | r["meta"]
+        )
+
+    def delete_notifications(self):
+        """
+        Deletes all notifications, this is an irreversible action!
+
+        #### API Requests: 1
+
+        """
+        self._delete_request("/events/destroy_all")
+
+    def get_calendar_token(self) -> str:
+        """
+        Return the calendar token stored in the cache. This can be used to link 3rd party calendars to your Homeworks.
+
+        #### API Requests: 0
+
+        """
+        return self._data["student"].calendar_token
+
     def reset_calendar_token(self):
+        """
+        Resets the calendar token and refresh the class cache.
+
+        #### API Requests: 1
+
+        """
         self._post_request("/icalendars/reset_calendar_token")
         self._get_data()  # refresh cache
 
@@ -867,6 +993,7 @@ class Client:
     @classmethod
     def change_client(cls, client: str):
         clients = ["web", "android"]
+        client = client.casefold()
         if client not in clients:
             raise ValueError(f"{client} is a valid client! ({clients})")
         Client.current_client = client
@@ -948,3 +1075,23 @@ class Client:
         self._data["school"] = self.get_current_school(False)
         self._data["student"] = self.get_current_student(False)
         return self._data
+
+
+def login(username: str, password: str, school_id: int) -> Client:
+    """
+    The `login` function takes a username, password, and school ID as input, uses them to authenticate
+    the user, and returns a `Client` object with the necessary credentials.
+
+    Args:
+        username (str): The username is a string that represents the username of the user trying to log
+    in. It is used to authenticate the user's identity. This can either be a email or a username.
+        password (str): The `password` parameter is a string that represents the user's password.
+            school_id (int): The `school_id` parameter is an integer that represents the unique identifier of
+    the school. It is used to authenticate the user and ensure that they are associated with the correct
+    school.
+
+    Returns:
+        an instance of the `Client` class.
+    """
+    auth = Client.get_auth(username, password, school_id)
+    return Client(f"Bearer {auth.access_token}", auth.user_id, auth.school_id)
