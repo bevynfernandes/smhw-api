@@ -21,6 +21,8 @@ Please note that there is no rate limiting kept by the script yet, so make sure 
 
 To view and install the latest changes (and for some bug fixes), use the [dev branch](https://github.com/EpicGamerCodes/smhw-api/tree/dev).
 
+If you would like to make a suggestion, simply create an issue! (same for bugs too)
+
 ## Features
 
 As of now, the project can perform the following tasks (examples can be viewed in `/examples/`):
