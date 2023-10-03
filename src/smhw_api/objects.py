@@ -62,7 +62,9 @@ class Create:
 
         fieldSet = cls.classFieldCache[classToInstantiate]
         filteredArgDict = {k: v for k, v in argDict.items() if k in fieldSet}
-        return classToInstantiate(**filteredArgDict)
+        return classToInstantiate(
+            **filteredArgDict
+        )  # Hopefully in the future I'll be able to make it autofill to None
 
 
 class TaskTypes(str, enum.Enum):
@@ -471,7 +473,6 @@ class Student(User):
     has_filled_details: bool
     intercom_enabled: bool
     left_at: bool
-    sims_id: str
     anonymous: bool
     disabled: bool
     created_at: datetime
