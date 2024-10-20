@@ -289,7 +289,7 @@ class Client:
         r = self._get_request(f"/users/{user_id}")
         if r.status_code == 404:
             raise exceptions.InvalidUser(user_id)
-        return objects.Create.instantiate(objects.User, r["user"])
+        return objects.Create.instantiate(objects.User, r.json()["user"])
 
     def get_current_student(
         self,
