@@ -390,7 +390,6 @@ class School:
     is_discussion_enabled: bool
     share_classroom_enabled: bool
     share_task_to_teams_enabled: bool
-    notice_types_enabled: bool
     domains_for_email_import: str
     domain = str  # domains_for_email_import
     school_private_info_id: int
@@ -445,6 +444,7 @@ class School:
     pulse_promo: bool
     announcement_category_ids: list[int]
     subjects: list[Subject]
+    notice_types_enabled: bool = field(default_factory=bool)
 
     def __post_init__(self):
         self.created_at = convert_datetime(self.created_at)
@@ -709,7 +709,6 @@ class TaskSearchResult:
     student_name_sims_format: str
     grade: Any
     student_avatar: str
-    grading_comment: Any
     completed: bool
     overdue: bool
     marked: bool
@@ -726,6 +725,7 @@ class TaskSearchResult:
     quiz_task_id: int = None
     class_test_task_id: int = None
     classwork_task_id: int = None
+    grading_comment: Any = field(default_factory=lambda: None)
 
     def __post_init__(self):
         self.created_at = convert_datetime(self.created_at)
@@ -862,7 +862,7 @@ class TimetableDay:
     date: datetime
     lessons: list[TimetableLesson]
     registration_group: str
-    detentions: list[Any]
+    detentions: list[Any] = field(default_factory=list)
 
     def __post_init__(self):
         self.date = datetime.strptime(self.date, "%Y-%m-%d")
