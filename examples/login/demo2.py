@@ -1,10 +1,5 @@
 import smhw_api as api
 
-# Enter your account credentials
-AUTH: str = ""
-USER_ID: int = 0
-SCHOOL_ID: int = 0
-
 
 def main():
     "This method merges the fetching of the Bearer auth and creating the client instance into one by using the login() function."
