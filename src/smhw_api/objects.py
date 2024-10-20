@@ -709,7 +709,6 @@ class TaskSearchResult:
     student_name_sims_format: str
     grade: Any
     student_avatar: str
-    grading_comment: Any
     completed: bool
     overdue: bool
     marked: bool
@@ -726,6 +725,7 @@ class TaskSearchResult:
     quiz_task_id: int = None
     class_test_task_id: int = None
     classwork_task_id: int = None
+    grading_comment: Any = field(default_factory=lambda: None)
 
     def __post_init__(self):
         self.created_at = convert_datetime(self.created_at)
