@@ -1,9 +1,5 @@
+"demo2.py is suggested over this method as it is more concise and easier to read."
 import smhw_api as api
-
-# Enter your account credentials
-AUTH: str = ""
-USER_ID: int = 0
-SCHOOL_ID: int = 0
 
 
 def main():

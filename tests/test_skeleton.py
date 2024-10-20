@@ -2,8 +2,8 @@ import pytest
 
 import smhw_api as api
 
-__author__ = "EpicGamerCodes"
-__copyright__ = "EpicGamerCodes"
+__author__ = "bevynfernandes"
+__copyright__ = "bevynfernandes"
 __license__ = "GPL-3.0-or-later"
 
 

@@ -2,7 +2,7 @@
 
 [![Project generated with PyScaffold](https://img.shields.io/badge/-PyScaffold-005CA0?logo=pyscaffold)](https://pyscaffold.org/)
 [![Code style: black](https://img.shields.io/badge/code%20style-black-000000.svg)](https://github.com/psf/black)
-![License](https://img.shields.io/github/license/EpicGamerCodes/smhw-api)
+![License](https://img.shields.io/github/license/bevynfernandes/smhw-api)
 
 ## Table of Contents
 
@@ -19,7 +19,7 @@ The `smhw-api` project allows users to connect to the Satchel: One API using the
 The responses are returned as objects which are fully type hinted (see `src/smhw_api/objects.py`).
 Please note that there is no rate limiting kept by the script yet, so make sure you send API requests appropriately. The script uses the Web client ids by default (to switch to the mobile app client, use the function `Client.change_client()`).
 
-To view and install the latest changes (and for some bug fixes), use the [dev branch](https://github.com/EpicGamerCodes/smhw-api/tree/dev).
+To view and install the latest changes (and for some bug fixes), use the [dev branch](https://github.com/bevynfernandes/smhw-api/tree/dev).
 
 If you would like to make a suggestion, simply create an issue! (same for bugs too)
 
@@ -52,7 +52,7 @@ As of now, the project can perform the following tasks (examples can be viewed i
 
 ### From Github Releases
 
-1. Download the latest wheel file from the [Releases](https://github.com/EpicGamerCodes/smhw-api/releases) page.
+1. Download the latest wheel file from the [Releases](https://github.com/bevynfernandes/smhw-api/releases) page.
 2. Install the wheel file using pip:
 
      ```bash
@@ -64,7 +64,7 @@ As of now, the project can perform the following tasks (examples can be viewed i
 1. Clone the repository: (use `-b dev` to use new commits)
 
      ```bash
-     git clone https://github.com/EpicGamerCodes/smhw-api.git
+     git clone https://github.com/bevynfernandes/smhw-api.git
      ```
 
 2. Navigate into the cloned repository:

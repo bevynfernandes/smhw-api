@@ -274,7 +274,7 @@ class Client:
             objects.Quiz, r | {"questions": nqq} | asdict(task)
         )
 
-    def get_user(self, user_id: int = None) -> objects.User:
+    def get_user(self, user_id: int) -> objects.User:
         """
         Retrieves user information from an API and returns a User object.
 
@@ -289,7 +289,7 @@ class Client:
         r = self._get_request(f"/users/{user_id}")
         if r.status_code == 404:
             raise exceptions.InvalidUser(user_id)
-        return objects.Create.instantiate(objects.User, r["user"])
+        return objects.Create.instantiate(objects.User, r.json()["user"])
 
     def get_current_student(
         self,
@@ -946,7 +946,7 @@ class Client:
         """
         if requestDate is None:
             now = datetime.datetime.now()
-        requestDate = now - datetime.timedelta(days=now.weekday())
+            requestDate = now - datetime.timedelta(days=now.weekday())
 
         params = {
             "requestDate": requestDate.strftime("%Y-%m-%d"),
@@ -1029,7 +1029,7 @@ class Client:
             for school in r["schools"]
         ]
         return objects.Create.instantiate(
-            objects.PublicSchoolSearch, {"schools": schools} | r["meta"]
+            objects.PublicSchoolSearch, {"schools": schools}
         )
 
     @classmethod

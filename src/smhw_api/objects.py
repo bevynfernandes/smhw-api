@@ -12,7 +12,6 @@ from loguru import logger
 
 # Custom Types
 AM_OR_PM = Literal["am", "pm"]
-HTML: str = "HTML CODE"
 
 
 def convert_datetime(var: str | datetime) -> datetime:
@@ -62,9 +61,13 @@ class Create:
 
         fieldSet = cls.classFieldCache[classToInstantiate]
         filteredArgDict = {k: v for k, v in argDict.items() if k in fieldSet}
-        return classToInstantiate(
-            **filteredArgDict
-        )  # Hopefully in the future I'll be able to make it autofill to None
+
+        # Autofill missing fields to None
+        for field in fieldSet:
+            if field not in filteredArgDict:
+                filteredArgDict[field] = None
+
+        return classToInstantiate(**filteredArgDict)
 
 
 class TaskTypes(str, enum.Enum):
@@ -390,7 +393,6 @@ class School:
     is_discussion_enabled: bool
     share_classroom_enabled: bool
     share_task_to_teams_enabled: bool
-    notice_types_enabled: bool
     domains_for_email_import: str
     domain = str  # domains_for_email_import
     school_private_info_id: int
@@ -445,6 +447,7 @@ class School:
     pulse_promo: bool
     announcement_category_ids: list[int]
     subjects: list[Subject]
+    notice_types_enabled: bool = field(default_factory=bool)
 
     def __post_init__(self):
         self.created_at = convert_datetime(self.created_at)
@@ -496,7 +499,7 @@ class Employee(User):
 class NotificationNotice:
     id: int
     title: str
-    message: HTML
+    message: str
 
 
 @dataclass(slots=True)
@@ -709,7 +712,6 @@ class TaskSearchResult:
     student_name_sims_format: str
     grade: Any
     student_avatar: str
-    grading_comment: Any
     completed: bool
     overdue: bool
     marked: bool
@@ -726,6 +728,7 @@ class TaskSearchResult:
     quiz_task_id: int = None
     class_test_task_id: int = None
     classwork_task_id: int = None
+    grading_comment: Any = field(default_factory=lambda: None)
 
     def __post_init__(self):
         self.created_at = convert_datetime(self.created_at)
@@ -772,7 +775,9 @@ class Praise:
         self.created_at = convert_datetime(self.created_at)
         self.updated_at = convert_datetime(self.updated_at)
         self.deleted_at = convert_datetime(self.deleted_at)
-        self.full_name: str = f"{self.staff_member_title}. {self.staff_member_forename} {self.staff_member_surname}"
+        self.full_name: str = (
+            f"{self.staff_member_title}. {self.staff_member_forename} {self.staff_member_surname}"
+        )
 
 
 @dataclass(slots=True)
@@ -862,7 +867,7 @@ class TimetableDay:
     date: datetime
     lessons: list[TimetableLesson]
     registration_group: str
-    detentions: list[Any]
+    detentions: list[Any] = field(default_factory=list)
 
     def __post_init__(self):
         self.date = datetime.strptime(self.date, "%Y-%m-%d")

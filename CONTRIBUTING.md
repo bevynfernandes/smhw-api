@@ -265,5 +265,5 @@ on [PyPI], the following steps can be used to release a new version for
 [virtual environment]: https://realpython.com/python-virtual-environments-a-primer/
 [virtualenv]: https://virtualenv.pypa.io/en/stable/
 
-[repository]: https://github.com/EpicGamerCodes/smhw-api
-[issue tracker]: https://github.com/EpicGamerCodes/smhw-api/issues
+[repository]: https://github.com/bevynfernandes/smhw-api
+[issue tracker]: https://github.com/bevynfernandes/smhw-api/issues
