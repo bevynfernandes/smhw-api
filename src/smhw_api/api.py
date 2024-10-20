@@ -946,7 +946,7 @@ class Client:
         """
         if requestDate is None:
             now = datetime.datetime.now()
-        requestDate = now - datetime.timedelta(days=now.weekday())
+            requestDate = now - datetime.timedelta(days=now.weekday())
 
         params = {
             "requestDate": requestDate.strftime("%Y-%m-%d"),
