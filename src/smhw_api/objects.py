@@ -862,7 +862,7 @@ class TimetableDay:
     date: datetime
     lessons: list[TimetableLesson]
     registration_group: str
-    detentions: list[Any]
+    detentions: list[Any] = field(default_factory=list)
 
     def __post_init__(self):
         self.date = datetime.strptime(self.date, "%Y-%m-%d")
