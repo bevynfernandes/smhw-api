@@ -274,7 +274,7 @@ class Client:
             objects.Quiz, r | {"questions": nqq} | asdict(task)
         )
 
-    def get_user(self, user_id: int = None) -> objects.User:
+    def get_user(self, user_id: int) -> objects.User:
         """
         Retrieves user information from an API and returns a User object.
 
@@ -1029,7 +1029,7 @@ class Client:
             for school in r["schools"]
         ]
         return objects.Create.instantiate(
-            objects.PublicSchoolSearch, {"schools": schools} | r["meta"]
+            objects.PublicSchoolSearch, {"schools": schools}
         )
 
     @classmethod
