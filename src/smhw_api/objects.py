@@ -390,7 +390,6 @@ class School:
     is_discussion_enabled: bool
     share_classroom_enabled: bool
     share_task_to_teams_enabled: bool
-    notice_types_enabled: bool
     domains_for_email_import: str
     domain = str  # domains_for_email_import
     school_private_info_id: int
@@ -445,6 +444,7 @@ class School:
     pulse_promo: bool
     announcement_category_ids: list[int]
     subjects: list[Subject]
+    notice_types_enabled: bool = field(default_factory=bool)
 
     def __post_init__(self):
         self.created_at = convert_datetime(self.created_at)
