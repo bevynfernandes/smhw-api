@@ -61,9 +61,13 @@ class Create:
 
         fieldSet = cls.classFieldCache[classToInstantiate]
         filteredArgDict = {k: v for k, v in argDict.items() if k in fieldSet}
-        return classToInstantiate(
-            **filteredArgDict
-        )  # Hopefully in the future I'll be able to make it autofill to None
+
+        # Autofill missing fields to None
+        for field in fieldSet:
+            if field not in filteredArgDict:
+                filteredArgDict[field] = None
+
+        return classToInstantiate(**filteredArgDict)
 
 
 class TaskTypes(str, enum.Enum):
